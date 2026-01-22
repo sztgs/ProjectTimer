@@ -1,0 +1,34 @@
+{
+  "plugins": [
+    {
+      "type": "starfield",
+      "x": 0,
+      "y": 0,
+      "width": 1920,
+      "height": 480,
+      "color": "#ffffff",
+      "count": 600,
+      "alpha": 1,
+      "_themePath": "./themes/Starclock"
+    },
+    {
+      "type": "asciiClock",
+      "x": 440,
+      "y": 200,
+      "fontSize": 35,
+      "lineHeight": 26,
+      "color": "#ffffff",
+      "_themePath": "./themes/Starclock"
+    },
+    {
+      "type": "asciiSpinner",
+      "x": 1527,
+      "y": 285,
+      "fontSize": 150,
+      "color": "#ffffff",
+      "speed": 120,
+      "alpha": 1,
+      "_themePath": "./themes/Starclock"
+    }
+  ]
+}
