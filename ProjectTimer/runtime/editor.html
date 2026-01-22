@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Theme Editor</title>
+  <link rel="stylesheet" href="./editor.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Theme Editor</h1>
+      <div class="field">
+        <label for="themeName">Theme name</label>
+        <input id="themeName" type="text" value="bios">
+      </div>
+      <div class="buttons">
+        <button id="loadTheme">Load theme</button>
+        <button id="saveLayout">Download layout.json</button>
+      </div>
+      <div class="field">
+        <label for="pluginType">Add plugin</label>
+        <select id="pluginType"></select>
+        <button id="addPlugin">Add</button>
+      </div>
+      <h2>Plugins</h2>
+      <ul id="pluginList" class="plugin-list"></ul>
+      <h2>Selected plugin</h2>
+      <div class="field">
+        <label for="pluginJson">Config (JSON)</label>
+        <textarea id="pluginJson" rows="12"></textarea>
+        <div class="buttons">
+          <button id="applyPlugin">Apply config</button>
+          <button id="deletePlugin">Delete plugin</button>
+        </div>
+      </div>
+      <p class="hint">Tip: drag items on the canvas to reposition.</p>
+    </aside>
+    <main class="stage">
+      <canvas id="screen"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </main>
+  </div>
+  <script type="module" src="./editor.js"></script>
+</body>
+</html>
