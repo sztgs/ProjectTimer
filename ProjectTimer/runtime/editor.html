@@ -13,9 +13,25 @@
         <label for="themeName">Theme name</label>
         <input id="themeName" type="text" value="bios">
       </div>
+      <div class="field">
+        <label for="themeDisplayName">Display name</label>
+        <input id="themeDisplayName" type="text" value="Custom Theme">
+      </div>
+      <div class="field">
+        <label for="themeWidth">Resolution (width x height)</label>
+        <div class="inline">
+          <input id="themeWidth" type="number" value="1920" min="200">
+          <input id="themeHeight" type="number" value="480" min="200">
+        </div>
+      </div>
+      <div class="field">
+        <label for="themeBackground">Background</label>
+        <input id="themeBackground" type="text" value="#000000">
+      </div>
       <div class="buttons">
         <button id="loadTheme">Load theme</button>
         <button id="saveLayout">Download layout.json</button>
+        <button id="createTheme">Download theme pack</button>
       </div>
       <div class="field">
         <label for="pluginType">Add plugin</label>
@@ -31,6 +47,8 @@
         <div class="buttons">
           <button id="applyPlugin">Apply config</button>
           <button id="deletePlugin">Delete plugin</button>
+          <button id="duplicatePlugin">Duplicate</button>
+          <button id="toggleVisibility">Toggle visibility</button>
         </div>
       </div>
       <div class="field">
@@ -40,6 +58,20 @@
       <div class="buttons">
         <button id="layerUp">Move layer up</button>
         <button id="layerDown">Move layer down</button>
+      </div>
+      <div class="field">
+        <label>Canvas helpers</label>
+        <div class="inline">
+          <label class="checkbox">
+            <input id="showGrid" type="checkbox" checked>
+            Show grid
+          </label>
+          <label class="checkbox">
+            <input id="snapGrid" type="checkbox" checked>
+            Snap to grid
+          </label>
+        </div>
+        <input id="gridSize" type="number" value="20" min="4" step="2">
       </div>
       <div class="field">
         <label for="styleEditor">Theme style.css</label>

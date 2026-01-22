@@ -4,6 +4,7 @@ import Calendar from "./plugins/calendar.js";
 import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
+import Label from "./plugins/label.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -21,7 +22,8 @@ const pluginMap = {
   calendar: Calendar,
   asciiClock: AsciiClock,
   asciiText: AsciiText,
-  shape: Shape
+  shape: Shape,
+  label: Label
 };
 
 // ---------- THEME CSS ----------

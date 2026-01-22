@@ -4,21 +4,32 @@ import Calendar from "./plugins/calendar.js";
 import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
+import Label from "./plugins/label.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
 const themeNameInput = document.getElementById("themeName");
+const themeDisplayNameInput = document.getElementById("themeDisplayName");
+const themeWidthInput = document.getElementById("themeWidth");
+const themeHeightInput = document.getElementById("themeHeight");
+const themeBackgroundInput = document.getElementById("themeBackground");
 const loadThemeButton = document.getElementById("loadTheme");
 const saveLayoutButton = document.getElementById("saveLayout");
+const createThemeButton = document.getElementById("createTheme");
 const pluginTypeSelect = document.getElementById("pluginType");
 const addPluginButton = document.getElementById("addPlugin");
 const pluginList = document.getElementById("pluginList");
 const pluginJson = document.getElementById("pluginJson");
 const applyPluginButton = document.getElementById("applyPlugin");
 const deletePluginButton = document.getElementById("deletePlugin");
+const duplicatePluginButton = document.getElementById("duplicatePlugin");
+const toggleVisibilityButton = document.getElementById("toggleVisibility");
 const textEditor = document.getElementById("textEditor");
 const layerUpButton = document.getElementById("layerUp");
 const layerDownButton = document.getElementById("layerDown");
+const showGridCheckbox = document.getElementById("showGrid");
+const snapGridCheckbox = document.getElementById("snapGrid");
+const gridSizeInput = document.getElementById("gridSize");
 const styleEditor = document.getElementById("styleEditor");
 const downloadStyleButton = document.getElementById("downloadStyle");
 const overlay = document.getElementById("overlay");
@@ -30,7 +41,8 @@ const pluginMap = {
   calendar: Calendar,
   asciiClock: AsciiClock,
   asciiText: AsciiText,
-  shape: Shape
+  shape: Shape,
+  label: Label
 };
 
 const DEFAULT_CONFIGS = {
@@ -79,6 +91,16 @@ const DEFAULT_CONFIGS = {
     color: "#00ff66",
     fill: false,
     lineWidth: 2
+  },
+  label: {
+    type: "label",
+    x: 120,
+    y: 120,
+    text: "Label",
+    fontSize: 24,
+    fontFamily: "monospace",
+    color: "#00ff66",
+    align: "left"
   }
 };
 
@@ -87,6 +109,16 @@ let plugins = [];
 let selectedIndex = -1;
 let dragging = null;
 let themeCss = "";
+let showGrid = true;
+let snapToGrid = true;
+let gridSize = 20;
+const styleTag = document.createElement("style");
+document.head.appendChild(styleTag);
+
+function updateCanvasBackground() {
+  const background = themeBackgroundInput.value || "#000000";
+  canvas.style.backgroundColor = background;
+}
 
 function setCanvasSize(width, height) {
   canvas.width = width;
@@ -98,7 +130,8 @@ function rebuildPluginList() {
   plugins.forEach((cfg, index) => {
     const item = document.createElement("li");
     const button = document.createElement("button");
-    button.textContent = `${index + 1}. ${cfg.type}`;
+    const hiddenSuffix = cfg.hidden ? " (hidden)" : "";
+    button.textContent = `${index + 1}. ${cfg.type}${hiddenSuffix}`;
     button.className = index === selectedIndex ? "active" : "";
     button.addEventListener("click", () => {
       selectPlugin(index);
@@ -186,13 +219,19 @@ function getPluginBounds(cfg) {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: maxWidth * (fontSize * 0.6), height: lineHeight * lines.length };
   }
 
+  if (cfg.type === "label") {
+    const fontSize = cfg.fontSize || 24;
+    const textLength = String(cfg.text || "Label").length;
+    return { x: cfg.x ?? 0, y: (cfg.y ?? 0) - fontSize, width: textLength * (fontSize * 0.6), height: fontSize + 10 };
+  }
+
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };
 }
 
 function instantiatePlugins() {
   return plugins.map(cfg => {
     const Plugin = pluginMap[cfg.type];
-    if (!Plugin) return null;
+    if (!Plugin || cfg.hidden) return null;
     cfg._themePath = themePath;
     return new Plugin(cfg);
   }).filter(Boolean);
@@ -202,6 +241,25 @@ let pluginInstances = [];
 
 function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (showGrid && gridSize > 0) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(0, 255, 102, 0.12)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= canvas.width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
 
   pluginInstances.forEach(instance => {
     instance.update?.();
@@ -222,6 +280,12 @@ async function loadTheme() {
   const styleResponse = await fetch(`${themePath}/style.css`);
   themeCss = styleResponse.ok ? await styleResponse.text() : "";
   styleEditor.value = themeCss;
+  styleTag.textContent = themeCss;
+  themeDisplayNameInput.value = meta.name || name;
+  themeWidthInput.value = meta.resolution?.[0] ?? 1920;
+  themeHeightInput.value = meta.resolution?.[1] ?? 480;
+  themeBackgroundInput.value = meta.background || "#000000";
+  updateCanvasBackground();
 
   setCanvasSize(meta.resolution[0], meta.resolution[1]);
   plugins = layout.plugins || [];
@@ -264,6 +328,25 @@ function deletePlugin() {
   updatePluginJson();
 }
 
+function duplicatePlugin() {
+  if (selectedIndex < 0) return;
+  const copy = JSON.parse(JSON.stringify(plugins[selectedIndex]));
+  copy.x = (copy.x ?? 0) + 20;
+  copy.y = (copy.y ?? 0) + 20;
+  plugins.splice(selectedIndex + 1, 0, copy);
+  pluginInstances = instantiatePlugins();
+  selectPlugin(selectedIndex + 1);
+}
+
+function toggleVisibility() {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  cfg.hidden = !cfg.hidden;
+  pluginInstances = instantiatePlugins();
+  rebuildPluginList();
+  updatePluginJson();
+}
+
 function moveLayer(direction) {
   if (selectedIndex < 0) return;
   const nextIndex = selectedIndex + direction;
@@ -289,17 +372,45 @@ function downloadLayout() {
   URL.revokeObjectURL(url);
 }
 
-function downloadStyle() {
-  const data = styleEditor.value;
-  const blob = new Blob([data], { type: "text/css" });
+function downloadThemePack() {
+  const name = themeNameInput.value.trim() || "custom";
+  const displayName = themeDisplayNameInput.value.trim() || name;
+  const width = Number(themeWidthInput.value) || 1920;
+  const height = Number(themeHeightInput.value) || 480;
+  const background = themeBackgroundInput.value || "#000000";
+  const themeJson = JSON.stringify(
+    {
+      name: displayName,
+      resolution: [width, height],
+      background
+    },
+    null,
+    2
+  );
+
+  const layoutJson = JSON.stringify({ plugins }, null, 2);
+  const styleContent = styleEditor.value || "";
+
+  downloadFile(themeJson, `${name}-theme.json`, "application/json");
+  downloadFile(layoutJson, `${name}-layout.json`, "application/json");
+  downloadFile(styleContent, `${name}-style.css`, "text/css");
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "style.css";
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+function downloadStyle() {
+  const data = styleEditor.value;
+  downloadFile(data, "style.css", "text/css");
 }
 
 function getMousePosition(event) {
@@ -348,13 +459,17 @@ window.addEventListener("mousemove", event => {
   const pos = getMousePosition(event);
   const cfg = plugins[dragging.index];
   if (dragging.mode === "resize" && canResize(cfg)) {
-    const newWidth = Math.max(20, pos.x - (cfg.x ?? 0));
-    const newHeight = Math.max(20, pos.y - (cfg.y ?? 0));
-    cfg.width = Math.round(newWidth);
-    cfg.height = Math.round(newHeight);
+    const rawWidth = Math.max(20, pos.x - (cfg.x ?? 0));
+    const rawHeight = Math.max(20, pos.y - (cfg.y ?? 0));
+    const snappedWidth = snapToGrid ? Math.round(rawWidth / gridSize) * gridSize : rawWidth;
+    const snappedHeight = snapToGrid ? Math.round(rawHeight / gridSize) * gridSize : rawHeight;
+    cfg.width = Math.round(snappedWidth);
+    cfg.height = Math.round(snappedHeight);
   } else {
-    cfg.x = Math.round(pos.x - dragging.offsetX);
-    cfg.y = Math.round(pos.y - dragging.offsetY);
+    const newX = pos.x - dragging.offsetX;
+    const newY = pos.y - dragging.offsetY;
+    cfg.x = Math.round(snapToGrid ? Math.round(newX / gridSize) * gridSize : newX);
+    cfg.y = Math.round(snapToGrid ? Math.round(newY / gridSize) * gridSize : newY);
   }
   pluginInstances = instantiatePlugins();
   updatePluginJson();
@@ -378,10 +493,34 @@ loadThemeButton.addEventListener("click", () => {
 addPluginButton.addEventListener("click", addPlugin);
 applyPluginButton.addEventListener("click", applyPluginConfig);
 deletePluginButton.addEventListener("click", deletePlugin);
+duplicatePluginButton.addEventListener("click", duplicatePlugin);
+toggleVisibilityButton.addEventListener("click", toggleVisibility);
 saveLayoutButton.addEventListener("click", downloadLayout);
+createThemeButton.addEventListener("click", downloadThemePack);
 downloadStyleButton.addEventListener("click", downloadStyle);
 layerUpButton.addEventListener("click", () => moveLayer(1));
 layerDownButton.addEventListener("click", () => moveLayer(-1));
+showGridCheckbox.addEventListener("change", () => {
+  showGrid = showGridCheckbox.checked;
+});
+snapGridCheckbox.addEventListener("change", () => {
+  snapToGrid = snapGridCheckbox.checked;
+});
+gridSizeInput.addEventListener("change", () => {
+  gridSize = Math.max(4, Number(gridSizeInput.value) || 20);
+});
+themeBackgroundInput.addEventListener("input", () => {
+  updateCanvasBackground();
+});
+themeWidthInput.addEventListener("change", () => {
+  setCanvasSize(Number(themeWidthInput.value) || 1920, Number(themeHeightInput.value) || 480);
+});
+themeHeightInput.addEventListener("change", () => {
+  setCanvasSize(Number(themeWidthInput.value) || 1920, Number(themeHeightInput.value) || 480);
+});
+styleEditor.addEventListener("input", () => {
+  styleTag.textContent = styleEditor.value;
+});
 textEditor.addEventListener("input", () => {
   if (selectedIndex < 0) return;
   const cfg = plugins[selectedIndex];
