@@ -1,0 +1,77 @@
+{
+  "plugins": [
+    {
+      "type": "asciiText",
+      "x": 40,
+      "y": 30,
+      "fontSize": 18,
+      "lineHeight": 24,
+      "color": "#00ff66",
+      "text": [
+        "+--------------------------------------------------------------------------+",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "|                                                                          |",
+        "+--------------------------------------------------------------------------+"
+      ]
+    },
+    {
+      "type": "asciiText",
+      "x": 80,
+      "y": 70,
+      "fontSize": 18,
+      "lineHeight": 22,
+      "color": "#00ff66",
+      "text": [
+        "PROJECT TIMER :: BIOS CONSOLE",
+        "STATUS: OK    MODE: TUI    INPUT: KEYBOARD",
+        "------------------------------------------------"
+      ]
+    },
+    {
+      "type": "asciiClock",
+      "x": 80,
+      "y": 170,
+      "fontSize": 22,
+      "lineHeight": 30,
+      "color": "#00ff66",
+      "locale": "en-GB",
+      "hour12": false,
+      "showSeconds": true
+    },
+    {
+      "type": "calendar",
+      "x": 900,
+      "y": 90,
+      "width": 900,
+      "height": 330,
+      "locale": "en-GB",
+      "weekStart": 1,
+      "color": "#00ff66",
+      "gridColor": "#006633",
+      "headerColor": "#00ff66",
+      "highlightColor": "#00ff66",
+      "background": "rgba(0, 20, 0, 0.6)",
+      "fontSize": 18,
+      "headerSize": 24
+    },
+    {
+      "type": "asciiText",
+      "x": 80,
+      "y": 360,
+      "fontSize": 16,
+      "lineHeight": 20,
+      "color": "#00ff66",
+      "text": [
+        "F1 HELP  F2 DEBUG  F10 SAVE  ESC EXIT",
+        "TIP: Edit themes/bios/layout.json to customize widgets."
+      ]
+    }
+  ]
+}
