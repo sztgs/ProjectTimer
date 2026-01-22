@@ -3,6 +3,7 @@ import ImageWidget from "./plugins/image.js";
 import Calendar from "./plugins/calendar.js";
 import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
+import Shape from "./plugins/shape.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -15,14 +16,21 @@ const pluginList = document.getElementById("pluginList");
 const pluginJson = document.getElementById("pluginJson");
 const applyPluginButton = document.getElementById("applyPlugin");
 const deletePluginButton = document.getElementById("deletePlugin");
+const textEditor = document.getElementById("textEditor");
+const layerUpButton = document.getElementById("layerUp");
+const layerDownButton = document.getElementById("layerDown");
+const styleEditor = document.getElementById("styleEditor");
+const downloadStyleButton = document.getElementById("downloadStyle");
 const overlay = document.getElementById("overlay");
+const resizeHandle = overlay.querySelector(".resize-handle");
 
 const pluginMap = {
   clock: Clock,
   image: ImageWidget,
   calendar: Calendar,
   asciiClock: AsciiClock,
-  asciiText: AsciiText
+  asciiText: AsciiText,
+  shape: Shape
 };
 
 const DEFAULT_CONFIGS = {
@@ -60,6 +68,17 @@ const DEFAULT_CONFIGS = {
     lineHeight: 22,
     color: "#00ff66",
     text: ["ASCII TITLE", "---------------"]
+  },
+  shape: {
+    type: "shape",
+    x: 300,
+    y: 200,
+    width: 140,
+    height: 140,
+    shape: "circle",
+    color: "#00ff66",
+    fill: false,
+    lineWidth: 2
   }
 };
 
@@ -67,6 +86,7 @@ let themePath = "./themes/bios";
 let plugins = [];
 let selectedIndex = -1;
 let dragging = null;
+let themeCss = "";
 
 function setCanvasSize(width, height) {
   canvas.width = width;
@@ -91,12 +111,21 @@ function rebuildPluginList() {
 function updatePluginJson() {
   if (selectedIndex < 0) {
     pluginJson.value = "";
+    textEditor.value = "";
+    textEditor.disabled = true;
     overlay.style.display = "none";
     return;
   }
 
   const cfg = plugins[selectedIndex];
   pluginJson.value = JSON.stringify(cfg, null, 2);
+  if (cfg.type === "asciiText") {
+    textEditor.disabled = false;
+    textEditor.value = Array.isArray(cfg.text) ? cfg.text.join("\n") : String(cfg.text ?? "");
+  } else {
+    textEditor.value = "";
+    textEditor.disabled = true;
+  }
 }
 
 function selectPlugin(index) {
@@ -123,6 +152,12 @@ function updateOverlay() {
   overlay.style.top = `${bounds.y + canvas.offsetTop}px`;
   overlay.style.width = `${bounds.width}px`;
   overlay.style.height = `${bounds.height}px`;
+  resizeHandle.style.display = canResize(plugins[selectedIndex]) ? "block" : "none";
+}
+
+function canResize(cfg) {
+  if (!cfg) return false;
+  return ["image", "calendar", "shape"].includes(cfg.type);
 }
 
 function getPluginBounds(cfg) {
@@ -184,6 +219,9 @@ async function loadTheme() {
   themePath = `./themes/${name}`;
   const meta = await fetch(`${themePath}/theme.json`).then(r => r.json());
   const layout = await fetch(`${themePath}/layout.json`).then(r => r.json());
+  const styleResponse = await fetch(`${themePath}/style.css`);
+  themeCss = styleResponse.ok ? await styleResponse.text() : "";
+  styleEditor.value = themeCss;
 
   setCanvasSize(meta.resolution[0], meta.resolution[1]);
   plugins = layout.plugins || [];
@@ -226,6 +264,18 @@ function deletePlugin() {
   updatePluginJson();
 }
 
+function moveLayer(direction) {
+  if (selectedIndex < 0) return;
+  const nextIndex = selectedIndex + direction;
+  if (nextIndex < 0 || nextIndex >= plugins.length) return;
+  const [item] = plugins.splice(selectedIndex, 1);
+  plugins.splice(nextIndex, 0, item);
+  selectedIndex = nextIndex;
+  pluginInstances = instantiatePlugins();
+  rebuildPluginList();
+  updatePluginJson();
+}
+
 function downloadLayout() {
   const data = JSON.stringify({ plugins }, null, 2);
   const blob = new Blob([data], { type: "application/json" });
@@ -233,6 +283,19 @@ function downloadLayout() {
   const link = document.createElement("a");
   link.href = url;
   link.download = "layout.json";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function downloadStyle() {
+  const data = styleEditor.value;
+  const blob = new Blob([data], { type: "text/css" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "style.css";
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -252,6 +315,12 @@ canvas.addEventListener("mousedown", event => {
   for (let i = plugins.length - 1; i >= 0; i -= 1) {
     const bounds = getPluginBounds(plugins[i]);
     if (!bounds) continue;
+    const onResizeHandle =
+      canResize(plugins[i]) &&
+      pos.x >= bounds.x + bounds.width - 12 &&
+      pos.x <= bounds.x + bounds.width + 12 &&
+      pos.y >= bounds.y + bounds.height - 12 &&
+      pos.y <= bounds.y + bounds.height + 12;
     if (
       pos.x >= bounds.x &&
       pos.x <= bounds.x + bounds.width &&
@@ -262,7 +331,10 @@ canvas.addEventListener("mousedown", event => {
       dragging = {
         index: i,
         offsetX: pos.x - bounds.x,
-        offsetY: pos.y - bounds.y
+        offsetY: pos.y - bounds.y,
+        mode: onResizeHandle ? "resize" : "move",
+        startWidth: bounds.width,
+        startHeight: bounds.height
       };
       return;
     }
@@ -275,8 +347,15 @@ window.addEventListener("mousemove", event => {
   if (!dragging) return;
   const pos = getMousePosition(event);
   const cfg = plugins[dragging.index];
-  cfg.x = Math.round(pos.x - dragging.offsetX);
-  cfg.y = Math.round(pos.y - dragging.offsetY);
+  if (dragging.mode === "resize" && canResize(cfg)) {
+    const newWidth = Math.max(20, pos.x - (cfg.x ?? 0));
+    const newHeight = Math.max(20, pos.y - (cfg.y ?? 0));
+    cfg.width = Math.round(newWidth);
+    cfg.height = Math.round(newHeight);
+  } else {
+    cfg.x = Math.round(pos.x - dragging.offsetX);
+    cfg.y = Math.round(pos.y - dragging.offsetY);
+  }
   pluginInstances = instantiatePlugins();
   updatePluginJson();
 });
@@ -300,7 +379,19 @@ addPluginButton.addEventListener("click", addPlugin);
 applyPluginButton.addEventListener("click", applyPluginConfig);
 deletePluginButton.addEventListener("click", deletePlugin);
 saveLayoutButton.addEventListener("click", downloadLayout);
+downloadStyleButton.addEventListener("click", downloadStyle);
+layerUpButton.addEventListener("click", () => moveLayer(1));
+layerDownButton.addEventListener("click", () => moveLayer(-1));
+textEditor.addEventListener("input", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "asciiText") return;
+  cfg.text = textEditor.value.split("\n");
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
 
 setCanvasSize(1920, 480);
 pluginInstances = instantiatePlugins();
+textEditor.disabled = true;
 render();

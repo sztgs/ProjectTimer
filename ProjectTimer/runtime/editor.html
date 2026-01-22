@@ -33,11 +33,26 @@
           <button id="deletePlugin">Delete plugin</button>
         </div>
       </div>
-      <p class="hint">Tip: drag items on the canvas to reposition.</p>
+      <div class="field">
+        <label for="textEditor">ASCII/Text content</label>
+        <textarea id="textEditor" rows="6" placeholder="Select a text plugin to edit"></textarea>
+      </div>
+      <div class="buttons">
+        <button id="layerUp">Move layer up</button>
+        <button id="layerDown">Move layer down</button>
+      </div>
+      <div class="field">
+        <label for="styleEditor">Theme style.css</label>
+        <textarea id="styleEditor" rows="8" placeholder="Load a theme to edit CSS animations"></textarea>
+        <button id="downloadStyle">Download style.css</button>
+      </div>
+      <p class="hint">Tip: drag items to reposition and drag the corner handle to resize.</p>
     </aside>
     <main class="stage">
       <canvas id="screen"></canvas>
-      <div class="overlay" id="overlay"></div>
+      <div class="overlay" id="overlay">
+        <div class="resize-handle"></div>
+      </div>
     </main>
   </div>
   <script type="module" src="./editor.js"></script>

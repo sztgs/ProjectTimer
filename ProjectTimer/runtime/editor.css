@@ -108,6 +108,16 @@ button {
   display: none;
 }
 
+.resize-handle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  right: -6px;
+  bottom: -6px;
+  background: #00ff66;
+  cursor: nwse-resize;
+}
+
 .hint {
   margin-top: 16px;
   font-size: 12px;

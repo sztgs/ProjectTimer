@@ -3,6 +3,7 @@ import ImageWidget from "./plugins/image.js";
 import Calendar from "./plugins/calendar.js";
 import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
+import Shape from "./plugins/shape.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -19,7 +20,8 @@ const pluginMap = {
   image: ImageWidget,
   calendar: Calendar,
   asciiClock: AsciiClock,
-  asciiText: AsciiText
+  asciiText: AsciiText,
+  shape: Shape
 };
 
 // ---------- THEME CSS ----------
