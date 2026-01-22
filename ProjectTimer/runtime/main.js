@@ -1,12 +1,14 @@
 import Clock from "./plugins/clock.js";
 import ImageWidget from "./plugins/image.js";
 import Calendar from "./plugins/calendar.js";
+import AsciiClock from "./plugins/asciiClock.js";
+import AsciiText from "./plugins/asciiText.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
 const debug = document.getElementById("debug");
 
-const THEME_NAME = "default";
+const THEME_NAME = "bios";
 const THEME_PATH = `./themes/${THEME_NAME}`;
 
 let plugins = [];
@@ -15,7 +17,9 @@ let showDebug = false;
 const pluginMap = {
   clock: Clock,
   image: ImageWidget,
-  calendar: Calendar
+  calendar: Calendar,
+  asciiClock: AsciiClock,
+  asciiText: AsciiText
 };
 
 // ---------- THEME CSS ----------
