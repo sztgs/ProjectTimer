@@ -22,6 +22,22 @@
       "y": 180,
       "size": 100,
       "color": "#00ffff"
-	}
+	},
+    {
+      "type": "calendar",
+      "x": 940,
+      "y": 70,
+      "width": 840,
+      "height": 320,
+      "locale": "pl-PL",
+      "weekStart": 1,
+      "color": "#ffffff",
+      "gridColor": "#5a5a5a",
+      "headerColor": "#00ffff",
+      "highlightColor": "#00ffff",
+      "background": "rgba(0, 0, 0, 0.45)",
+      "fontSize": 20,
+      "headerSize": 28
+    }
   ]
 }
