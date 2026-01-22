@@ -1,0 +1,22 @@
+body {
+  margin: 0;
+  background: #000000;
+  color: #00ff66;
+  font-family: "Courier New", monospace;
+}
+
+#screen {
+  display: block;
+  image-rendering: pixelated;
+}
+
+#debug {
+  position: fixed;
+  top: 0;
+  right: 0;
+  color: #00ff66;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 6px;
+  white-space: pre;
+}
