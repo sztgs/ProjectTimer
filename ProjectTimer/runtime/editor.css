@@ -39,6 +39,11 @@ body {
   margin-bottom: 12px;
 }
 
+select,
+input[type="number"] {
+  min-width: 0;
+}
+
 label {
   font-size: 12px;
   text-transform: uppercase;

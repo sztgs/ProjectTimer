@@ -10,6 +10,7 @@ import MediaCover from "./plugins/mediaCover.js";
 import MediaText from "./plugins/mediaText.js";
 import MediaProgress from "./plugins/mediaProgress.js";
 import MediaControls from "./plugins/mediaControls.js";
+import VideoPlayer from "./plugins/video.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -29,6 +30,8 @@ const applyPluginButton = document.getElementById("applyPlugin");
 const deletePluginButton = document.getElementById("deletePlugin");
 const duplicatePluginButton = document.getElementById("duplicatePlugin");
 const toggleVisibilityButton = document.getElementById("toggleVisibility");
+const shapeTypeSelect = document.getElementById("shapeType");
+const rotationInput = document.getElementById("rotation");
 const textEditor = document.getElementById("textEditor");
 const layerUpButton = document.getElementById("layerUp");
 const layerDownButton = document.getElementById("layerDown");
@@ -37,6 +40,10 @@ const snapGridCheckbox = document.getElementById("snapGrid");
 const gridSizeInput = document.getElementById("gridSize");
 const styleEditor = document.getElementById("styleEditor");
 const downloadStyleButton = document.getElementById("downloadStyle");
+const stylePresetSelect = document.getElementById("stylePreset");
+const applyStylePresetButton = document.getElementById("applyStylePreset");
+const animationPresetSelect = document.getElementById("animationPreset");
+const addAnimationPresetButton = document.getElementById("addAnimationPreset");
 const overlay = document.getElementById("overlay");
 const resizeHandle = overlay.querySelector(".resize-handle");
 
@@ -52,7 +59,8 @@ const pluginMap = {
   mediaCover: MediaCover,
   mediaText: MediaText,
   mediaProgress: MediaProgress,
-  mediaControls: MediaControls
+  mediaControls: MediaControls,
+  video: VideoPlayer
 };
 
 const DEFAULT_CONFIGS = {
@@ -63,7 +71,8 @@ const DEFAULT_CONFIGS = {
     y: 0,
     width: 300,
     height: 200,
-    src: "assets/bg.png"
+    src: "assets/bg.png",
+    rotation: 0
   },
   calendar: {
     type: "calendar",
@@ -100,7 +109,8 @@ const DEFAULT_CONFIGS = {
     shape: "circle",
     color: "#00ff66",
     fill: false,
-    lineWidth: 2
+    lineWidth: 2,
+    rotation: 0
   },
   label: {
     type: "label",
@@ -170,6 +180,18 @@ const DEFAULT_CONFIGS = {
     appId: "projecttimer",
     appName: "Project Timer",
     appVersion: "1.0.0"
+  },
+  video: {
+    type: "video",
+    x: 60,
+    y: 60,
+    width: 320,
+    height: 180,
+    src: "assets/sample.mp4",
+    muted: true,
+    loop: true,
+    autoplay: true,
+    rotation: 0
   }
 };
 
@@ -183,6 +205,16 @@ let snapToGrid = true;
 let gridSize = 20;
 const styleTag = document.createElement("style");
 document.head.appendChild(styleTag);
+const STYLE_PRESETS = {
+  retro: `body {\n  margin: 0;\n  background: #000;\n  color: #00ff66;\n  font-family: \"Courier New\", monospace;\n}\n\n#screen {\n  filter: contrast(1.1) saturate(1.2);\n}\n`,
+  modern: `body {\n  margin: 0;\n  background: #0b0f1a;\n  color: #e5e7eb;\n  font-family: \"Inter\", \"Segoe UI\", sans-serif;\n}\n\n#screen {\n  border-radius: 18px;\n  box-shadow: 0 20px 60px rgba(0,0,0,0.4);\n}\n`
+};
+
+const ANIMATION_PRESETS = {
+  glow: `\n@keyframes glowPulse {\n  0%, 100% { box-shadow: 0 0 12px rgba(0, 255, 102, 0.35); }\n  50% { box-shadow: 0 0 24px rgba(0, 255, 102, 0.7); }\n}\n\n#screen {\n  animation: glowPulse 4s ease-in-out infinite;\n}\n`,
+  float: `\n@keyframes floaty {\n  0%, 100% { transform: translateY(0px); }\n  50% { transform: translateY(-6px); }\n}\n\n#screen {\n  animation: floaty 6s ease-in-out infinite;\n}\n`,
+  scanlines: `\n@keyframes scanMove {\n  0% { background-position-y: 0px; }\n  100% { background-position-y: 4px; }\n}\n\nbody {\n  background-image: repeating-linear-gradient(\n    to bottom,\n    rgba(0,0,0,0.12),\n    rgba(0,0,0,0.12) 1px,\n    transparent 1px,\n    transparent 3px\n  );\n  animation: scanMove 0.6s linear infinite;\n}\n`
+};
 
 function updateCanvasBackground() {
   const background = themeBackgroundInput.value || "#000000";
@@ -215,6 +247,8 @@ function updatePluginJson() {
     pluginJson.value = "";
     textEditor.value = "";
     textEditor.disabled = true;
+    shapeTypeSelect.disabled = true;
+    rotationInput.disabled = true;
     overlay.style.display = "none";
     return;
   }
@@ -228,6 +262,14 @@ function updatePluginJson() {
     textEditor.value = "";
     textEditor.disabled = true;
   }
+
+  shapeTypeSelect.disabled = cfg.type !== "shape";
+  if (cfg.type === "shape") {
+    shapeTypeSelect.value = cfg.shape || "rect";
+  }
+
+  rotationInput.disabled = !("rotation" in cfg);
+  rotationInput.value = cfg.rotation ?? 0;
 }
 
 function selectPlugin(index) {
@@ -265,7 +307,8 @@ function canResize(cfg) {
     "shape",
     "mediaPlayer",
     "mediaCover",
-    "mediaProgress"
+    "mediaProgress",
+    "video"
   ].includes(cfg.type);
 }
 
@@ -312,6 +355,10 @@ function getPluginBounds(cfg) {
     const gap = cfg.gap || 12;
     const width = size * 3 + gap * 2;
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width, height: size };
+  }
+
+  if (cfg.type === "video") {
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 320, height: cfg.height ?? 180 };
   }
 
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };
@@ -575,6 +622,20 @@ Object.keys(pluginMap).forEach(type => {
   pluginTypeSelect.appendChild(option);
 });
 
+Object.entries(STYLE_PRESETS).forEach(([key, value]) => {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = key;
+  stylePresetSelect.appendChild(option);
+});
+
+Object.entries(ANIMATION_PRESETS).forEach(([key, value]) => {
+  const option = document.createElement("option");
+  option.value = key;
+  option.textContent = key;
+  animationPresetSelect.appendChild(option);
+});
+
 loadThemeButton.addEventListener("click", () => {
   loadTheme().catch(err => alert(err.message));
 });
@@ -589,6 +650,18 @@ createThemeButton.addEventListener("click", downloadThemePack);
 downloadStyleButton.addEventListener("click", downloadStyle);
 layerUpButton.addEventListener("click", () => moveLayer(1));
 layerDownButton.addEventListener("click", () => moveLayer(-1));
+applyStylePresetButton.addEventListener("click", () => {
+  const preset = STYLE_PRESETS[stylePresetSelect.value];
+  if (!preset) return;
+  styleEditor.value = preset;
+  styleTag.textContent = preset;
+});
+addAnimationPresetButton.addEventListener("click", () => {
+  const snippet = ANIMATION_PRESETS[animationPresetSelect.value];
+  if (!snippet) return;
+  styleEditor.value = `${styleEditor.value}\n${snippet}`.trim();
+  styleTag.textContent = styleEditor.value;
+});
 showGridCheckbox.addEventListener("change", () => {
   showGrid = showGridCheckbox.checked;
 });
@@ -615,6 +688,22 @@ textEditor.addEventListener("input", () => {
   const cfg = plugins[selectedIndex];
   if (cfg.type !== "asciiText") return;
   cfg.text = textEditor.value.split("\n");
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+shapeTypeSelect.addEventListener("change", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "shape") return;
+  cfg.shape = shapeTypeSelect.value;
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+rotationInput.addEventListener("change", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (!("rotation" in cfg)) return;
+  cfg.rotation = Number(rotationInput.value) || 0;
   pluginInstances = instantiatePlugins();
   updatePluginJson();
 });

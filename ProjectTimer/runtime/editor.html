@@ -52,6 +52,19 @@
         </div>
       </div>
       <div class="field">
+        <label for="shapeType">Shape type</label>
+        <select id="shapeType">
+          <option value="rect">Rectangle</option>
+          <option value="roundedRect">Rounded rectangle</option>
+          <option value="circle">Circle</option>
+          <option value="triangle">Triangle</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="rotation">Rotation (degrees)</label>
+        <input id="rotation" type="number" value="0" step="5">
+      </div>
+      <div class="field">
         <label for="textEditor">ASCII/Text content</label>
         <textarea id="textEditor" rows="6" placeholder="Select a text plugin to edit"></textarea>
       </div>
@@ -77,6 +90,16 @@
         <label for="styleEditor">Theme style.css</label>
         <textarea id="styleEditor" rows="8" placeholder="Load a theme to edit CSS animations"></textarea>
         <button id="downloadStyle">Download style.css</button>
+      </div>
+      <div class="field">
+        <label for="stylePreset">Style preset</label>
+        <select id="stylePreset"></select>
+        <button id="applyStylePreset">Apply preset</button>
+      </div>
+      <div class="field">
+        <label for="animationPreset">Animation preset</label>
+        <select id="animationPreset"></select>
+        <button id="addAnimationPreset">Add animation</button>
       </div>
       <p class="hint">Tip: drag items to reposition and drag the corner handle to resize.</p>
     </aside>

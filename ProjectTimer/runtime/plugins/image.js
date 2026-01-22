@@ -20,12 +20,28 @@ export default class ImageWidget {
   draw(ctx) {
     if (!this.loaded || this.failed) return;
 
+    const {
+      x,
+      y,
+      width,
+      height,
+      rotation = 0
+    } = this.cfg;
+
+    const centerX = x + width / 2;
+    const centerY = y + height / 2;
+    const radians = (rotation * Math.PI) / 180;
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate(radians);
     ctx.drawImage(
       this.img,
-      this.cfg.x,
-      this.cfg.y,
-      this.cfg.width,
-      this.cfg.height
+      -width / 2,
+      -height / 2,
+      width,
+      height
     );
+    ctx.restore();
   }
 }

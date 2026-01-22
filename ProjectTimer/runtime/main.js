@@ -10,6 +10,7 @@ import MediaCover from "./plugins/mediaCover.js";
 import MediaText from "./plugins/mediaText.js";
 import MediaProgress from "./plugins/mediaProgress.js";
 import MediaControls from "./plugins/mediaControls.js";
+import VideoPlayer from "./plugins/video.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -33,7 +34,8 @@ const pluginMap = {
   mediaCover: MediaCover,
   mediaText: MediaText,
   mediaProgress: MediaProgress,
-  mediaControls: MediaControls
+  mediaControls: MediaControls,
+  video: VideoPlayer
 };
 
 // ---------- THEME CSS ----------
