@@ -5,6 +5,7 @@ import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
 import Label from "./plugins/label.js";
+import MediaPlayer from "./plugins/mediaPlayer.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -42,7 +43,8 @@ const pluginMap = {
   asciiClock: AsciiClock,
   asciiText: AsciiText,
   shape: Shape,
-  label: Label
+  label: Label,
+  mediaPlayer: MediaPlayer
 };
 
 const DEFAULT_CONFIGS = {
@@ -101,6 +103,22 @@ const DEFAULT_CONFIGS = {
     fontFamily: "monospace",
     color: "#00ff66",
     align: "left"
+  },
+  mediaPlayer: {
+    type: "mediaPlayer",
+    x: 60,
+    y: 260,
+    width: 540,
+    height: 160,
+    baseUrl: "http://localhost:9863/api/v1",
+    endpoint: "/state",
+    pollInterval: 3000,
+    background: "rgba(0, 0, 0, 0.5)",
+    color: "#ffffff",
+    accentColor: "#00ff66",
+    fontSize: 18,
+    titleSize: 22,
+    coverSize: 96
   }
 };
 
@@ -190,7 +208,7 @@ function updateOverlay() {
 
 function canResize(cfg) {
   if (!cfg) return false;
-  return ["image", "calendar", "shape"].includes(cfg.type);
+  return ["image", "calendar", "shape", "mediaPlayer"].includes(cfg.type);
 }
 
 function getPluginBounds(cfg) {

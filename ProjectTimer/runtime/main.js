@@ -5,6 +5,7 @@ import AsciiClock from "./plugins/asciiClock.js";
 import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
 import Label from "./plugins/label.js";
+import MediaPlayer from "./plugins/mediaPlayer.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -23,7 +24,8 @@ const pluginMap = {
   asciiClock: AsciiClock,
   asciiText: AsciiText,
   shape: Shape,
-  label: Label
+  label: Label,
+  mediaPlayer: MediaPlayer
 };
 
 // ---------- THEME CSS ----------
