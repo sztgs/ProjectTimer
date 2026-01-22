@@ -1,5 +1,6 @@
 import Clock from "./plugins/clock.js";
 import ImageWidget from "./plugins/image.js";
+import Calendar from "./plugins/calendar.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -13,7 +14,8 @@ let showDebug = false;
 
 const pluginMap = {
   clock: Clock,
-  image: ImageWidget
+  image: ImageWidget,
+  calendar: Calendar
 };
 
 // ---------- THEME CSS ----------
