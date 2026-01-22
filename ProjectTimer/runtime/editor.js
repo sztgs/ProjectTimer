@@ -11,6 +11,7 @@ import MediaText from "./plugins/mediaText.js";
 import MediaProgress from "./plugins/mediaProgress.js";
 import MediaControls from "./plugins/mediaControls.js";
 import VideoPlayer from "./plugins/video.js";
+import AsciiWave from "./plugins/asciiWave.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -60,7 +61,8 @@ const pluginMap = {
   mediaText: MediaText,
   mediaProgress: MediaProgress,
   mediaControls: MediaControls,
-  video: VideoPlayer
+  video: VideoPlayer,
+  asciiWave: AsciiWave
 };
 
 const DEFAULT_CONFIGS = {
@@ -192,6 +194,20 @@ const DEFAULT_CONFIGS = {
     loop: true,
     autoplay: true,
     rotation: 0
+  },
+  asciiWave: {
+    type: "asciiWave",
+    x: 60,
+    y: 260,
+    width: 420,
+    height: 120,
+    amplitude: 18,
+    density: 0.2,
+    speed: 0.08,
+    char: "~",
+    fontSize: 16,
+    color: "#00ff66",
+    background: "rgba(0,0,0,0.2)"
   }
 };
 
@@ -308,7 +324,8 @@ function canResize(cfg) {
     "mediaPlayer",
     "mediaCover",
     "mediaProgress",
-    "video"
+    "video",
+    "asciiWave"
   ].includes(cfg.type);
 }
 
@@ -359,6 +376,10 @@ function getPluginBounds(cfg) {
 
   if (cfg.type === "video") {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 320, height: cfg.height ?? 180 };
+  }
+
+  if (cfg.type === "asciiWave") {
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 400, height: cfg.height ?? 120 };
   }
 
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };

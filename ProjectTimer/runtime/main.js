@@ -11,13 +11,15 @@ import MediaText from "./plugins/mediaText.js";
 import MediaProgress from "./plugins/mediaProgress.js";
 import MediaControls from "./plugins/mediaControls.js";
 import VideoPlayer from "./plugins/video.js";
+import AsciiWave from "./plugins/asciiWave.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
 const debug = document.getElementById("debug");
 
-const THEME_NAME = "bios";
-const THEME_PATH = `./themes/${THEME_NAME}`;
+const DEFAULT_THEME = "bios";
+let themeName = DEFAULT_THEME;
+let themePath = `./themes/${themeName}`;
 
 let plugins = [];
 let showDebug = false;
@@ -35,14 +37,15 @@ const pluginMap = {
   mediaText: MediaText,
   mediaProgress: MediaProgress,
   mediaControls: MediaControls,
-  video: VideoPlayer
+  video: VideoPlayer,
+  asciiWave: AsciiWave
 };
 
 // ---------- THEME CSS ----------
 function loadThemeCSS() {
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = `${THEME_PATH}/style.css`;
+  link.href = `${themePath}/style.css`;
   link.onerror = () => console.warn("Theme CSS missing");
   document.head.appendChild(link);
 }
@@ -57,10 +60,13 @@ function showError(title, err) {
 // ---------- LOAD THEME ----------
 async function loadTheme() {
   try {
+    const config = await fetch("./config.json").then(r => r.json()).catch(() => ({}));
+    themeName = config.theme || DEFAULT_THEME;
+    themePath = `./themes/${themeName}`;
     loadThemeCSS();
 
-    const meta = await fetch(`${THEME_PATH}/theme.json`).then(r => r.json());
-    const layout = await fetch(`${THEME_PATH}/layout.json`).then(r => r.json());
+    const meta = await fetch(`${themePath}/theme.json`).then(r => r.json());
+    const layout = await fetch(`${themePath}/layout.json`).then(r => r.json());
 
     canvas.width = meta.resolution[0];
     canvas.height = meta.resolution[1];
@@ -69,7 +75,7 @@ async function loadTheme() {
     layout.plugins.forEach(cfg => {
       const P = pluginMap[cfg.type];
       if (!P) return;
-      cfg._themePath = THEME_PATH;
+      cfg._themePath = themePath;
       plugins.push(new P(cfg));
     });
 
