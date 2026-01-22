@@ -19,6 +19,8 @@ import ParticleField from "./plugins/particleField.js";
 import GradientShift from "./plugins/gradientShift.js";
 import OrbitDots from "./plugins/orbitDots.js";
 import EqualizerBars from "./plugins/equalizerBars.js";
+import BinaryClock from "./plugins/binaryClock.js";
+import SegmentClock from "./plugins/segmentClock.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -57,7 +59,9 @@ const pluginMap = {
   particleField: ParticleField,
   gradientShift: GradientShift,
   orbitDots: OrbitDots,
-  equalizerBars: EqualizerBars
+  equalizerBars: EqualizerBars,
+  binaryClock: BinaryClock,
+  segmentClock: SegmentClock
 };
 
 // ---------- THEME CSS ----------

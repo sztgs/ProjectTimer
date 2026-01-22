@@ -19,6 +19,8 @@ import ParticleField from "./plugins/particleField.js";
 import GradientShift from "./plugins/gradientShift.js";
 import OrbitDots from "./plugins/orbitDots.js";
 import EqualizerBars from "./plugins/equalizerBars.js";
+import BinaryClock from "./plugins/binaryClock.js";
+import SegmentClock from "./plugins/segmentClock.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -79,11 +81,36 @@ const pluginMap = {
   particleField: ParticleField,
   gradientShift: GradientShift,
   orbitDots: OrbitDots,
-  equalizerBars: EqualizerBars
+  equalizerBars: EqualizerBars,
+  binaryClock: BinaryClock,
+  segmentClock: SegmentClock
 };
 
 const DEFAULT_CONFIGS = {
   clock: { type: "clock", x: 60, y: 120, size: 48, color: "#00ff66" },
+  binaryClock: {
+    type: "binaryClock",
+    x: 60,
+    y: 200,
+    dotSize: 10,
+    gap: 6,
+    onColor: "#00ff66",
+    offColor: "rgba(0, 255, 102, 0.2)",
+    background: "rgba(0,0,0,0.4)",
+    alpha: 1
+  },
+  segmentClock: {
+    type: "segmentClock",
+    x: 60,
+    y: 260,
+    size: 10,
+    gap: 10,
+    color: "#00ff66",
+    offColor: "rgba(0, 255, 102, 0.2)",
+    background: "rgba(0,0,0,0.4)",
+    lineWidth: 4,
+    alpha: 1
+  },
   image: {
     type: "image",
     x: 0,
@@ -108,7 +135,9 @@ const DEFAULT_CONFIGS = {
     y: 160,
     fontSize: 20,
     lineHeight: 26,
-    color: "#00ff66"
+    color: "#00ff66",
+    style: "block",
+    alpha: 1
   },
   asciiText: {
     type: "asciiText",
