@@ -6,6 +6,10 @@ import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
 import Label from "./plugins/label.js";
 import MediaPlayer from "./plugins/mediaPlayer.js";
+import MediaCover from "./plugins/mediaCover.js";
+import MediaText from "./plugins/mediaText.js";
+import MediaProgress from "./plugins/mediaProgress.js";
+import MediaControls from "./plugins/mediaControls.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -25,7 +29,11 @@ const pluginMap = {
   asciiText: AsciiText,
   shape: Shape,
   label: Label,
-  mediaPlayer: MediaPlayer
+  mediaPlayer: MediaPlayer,
+  mediaCover: MediaCover,
+  mediaText: MediaText,
+  mediaProgress: MediaProgress,
+  mediaControls: MediaControls
 };
 
 // ---------- THEME CSS ----------
@@ -90,6 +98,18 @@ window.addEventListener("keydown", e => {
   if (e.key === "F2") {
     showDebug = !showDebug;
     debug.style.display = showDebug ? "block" : "none";
+  }
+});
+
+canvas.addEventListener("click", async event => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  for (let i = plugins.length - 1; i >= 0; i -= 1) {
+    const handled = await plugins[i].handleClick?.(x, y);
+    if (handled) {
+      break;
+    }
   }
 });
 

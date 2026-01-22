@@ -1,56 +1,8 @@
-const DEFAULT_STATE = {
-  status: "waiting",
-  title: "Wait for connection",
-  artist: "",
-  album: "",
-  cover: ""
-};
-
-function pickCover(track) {
-  if (!track) return "";
-  return (
-    track.cover ||
-    track.coverUrl ||
-    track.thumbnail ||
-    track.image ||
-    track.artwork ||
-    track.albumArt ||
-    ""
-  );
-}
-
-function normalizeState(data) {
-  const track =
-    data?.track ||
-    data?.song ||
-    data?.currentTrack ||
-    data?.playing ||
-    data?.player?.track ||
-    data?.data?.track ||
-    null;
-
-  if (!track) {
-    return {
-      ...DEFAULT_STATE,
-      status: data ? "no-track" : "waiting"
-    };
-  }
-
-  return {
-    status: data?.status || data?.state || "playing",
-    title: track.title || track.name || "Unknown title",
-    artist: track.artist || track.author || track.artistName || "Unknown artist",
-    album: track.album || track.albumName || "",
-    cover: pickCover(track)
-  };
-}
+import { getMediaState, getMediaSession } from "./mediaSession.js";
 
 export default class MediaPlayer {
   constructor(cfg) {
     this.cfg = cfg;
-    this.state = DEFAULT_STATE;
-    this.lastFetch = 0;
-    this.isFetching = false;
     this.coverImage = new Image();
     this.coverLoaded = false;
     this.coverFailed = false;
@@ -66,44 +18,48 @@ export default class MediaPlayer {
     };
   }
 
-  async fetchState() {
-    if (this.isFetching) return;
-    this.isFetching = true;
-
-    const baseUrl = this.cfg.baseUrl || "http://localhost:9863/api/v1";
-    const endpoint = this.cfg.endpoint || "/state";
-
-    try {
-      const response = await fetch(`${baseUrl}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      this.state = normalizeState(data);
-      if (this.state.cover && this.coverImage.src !== this.state.cover) {
-        this.coverLoaded = false;
-        this.coverFailed = false;
-        this.coverImage.src = this.state.cover;
-      }
-    } catch (error) {
-      this.state = {
-        ...DEFAULT_STATE,
-        status: "waiting",
-        title: "Wait for connection"
-      };
+  update() {
+    const state = getMediaState(this.cfg);
+    if (state.cover && this.coverImage.src !== state.cover) {
       this.coverLoaded = false;
       this.coverFailed = false;
-    } finally {
-      this.isFetching = false;
-      this.lastFetch = Date.now();
+      this.coverImage.src = state.cover;
     }
   }
 
-  update() {
-    const interval = this.cfg.pollInterval ?? 3000;
-    const now = Date.now();
-    if (now - this.lastFetch < interval) return;
-    this.fetchState();
+  getControlButtons(bounds) {
+    const size = this.cfg.buttonSize ?? 28;
+    const gap = this.cfg.buttonGap ?? 10;
+    const baseY = bounds.y + bounds.height - size - 12;
+    const startX = bounds.x + bounds.width - (size * 3 + gap * 2) - 12;
+    return [
+      { x: startX, y: baseY, size, command: "previous", label: "<<" },
+      { x: startX + size + gap, y: baseY, size, command: "playPause", label: ">" },
+      { x: startX + (size + gap) * 2, y: baseY, size, command: "next", label: ">>" }
+    ];
+  }
+
+  async handleClick(px, py) {
+    const bounds = this.getBounds();
+    const buttons = this.getControlButtons(bounds);
+    const session = getMediaSession(this.cfg);
+    for (const button of buttons) {
+      if (
+        px >= button.x &&
+        px <= button.x + button.size &&
+        py >= button.y &&
+        py <= button.y + button.size
+      ) {
+        await session.sendCommand(button.command);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getBounds() {
+    const { x, y, width = 520, height = 160 } = this.cfg;
+    return { x, y, width, height };
   }
 
   draw(ctx) {
@@ -111,16 +67,26 @@ export default class MediaPlayer {
       x,
       y,
       width = 520,
-      height = 140,
+      height = 160,
       background = "rgba(0, 0, 0, 0.5)",
       color = "#ffffff",
       accentColor = "#00ff66",
-      fontSize = 20,
-      titleSize = 24,
+      fontSize = 18,
+      titleSize = 22,
       padding = 14,
       coverSize = 96,
-      gap = 16
+      gap = 16,
+      progressHeight = 8,
+      progressBackground = "rgba(255, 255, 255, 0.2)",
+      progressFill = "#00ff66",
+      buttonSize = 28,
+      buttonGap = 10
     } = this.cfg;
+
+    const state = getMediaState(this.cfg);
+    const duration = state.duration || 0;
+    const progress = state.progress || 0;
+    const ratio = duration > 0 ? Math.min(1, progress / duration) : 0;
 
     ctx.fillStyle = background;
     ctx.fillRect(x, y, width, height);
@@ -143,15 +109,40 @@ export default class MediaPlayer {
 
     ctx.fillStyle = accentColor;
     ctx.font = `${titleSize}px monospace`;
-    ctx.fillText(this.state.title || "Wait for connection", textX, textY);
+    ctx.fillText(state.title || "Wait for connection", textX, textY);
 
     ctx.fillStyle = color;
     ctx.font = `${fontSize}px monospace`;
-    if (this.state.artist) {
-      ctx.fillText(this.state.artist, textX, textY + fontSize + 8);
+    if (state.artist) {
+      ctx.fillText(state.artist, textX, textY + fontSize + 8);
     }
-    if (this.state.album) {
-      ctx.fillText(this.state.album, textX, textY + (fontSize + 8) * 2);
+    if (state.album) {
+      ctx.fillText(state.album, textX, textY + (fontSize + 8) * 2);
     }
+
+    const progressX = textX;
+    const progressY = y + height - progressHeight - padding;
+    const progressWidth = width - (textX - x) - padding;
+
+    ctx.fillStyle = progressBackground;
+    ctx.fillRect(progressX, progressY, progressWidth, progressHeight);
+    ctx.fillStyle = progressFill;
+    ctx.fillRect(progressX, progressY, progressWidth * ratio, progressHeight);
+
+    const controlsY = progressY - buttonSize - 8;
+    const controlsX = x + width - (buttonSize * 3 + buttonGap * 2) - padding;
+    const isPlaying = state.trackState === 1;
+    const labels = ["<<", isPlaying ? "||" : ">", ">>"];
+
+    ctx.font = `${fontSize}px monospace`;
+    [0, 1, 2].forEach(index => {
+      const btnX = controlsX + index * (buttonSize + buttonGap);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+      ctx.fillRect(btnX, controlsY, buttonSize, buttonSize);
+      ctx.strokeStyle = accentColor;
+      ctx.strokeRect(btnX, controlsY, buttonSize, buttonSize);
+      ctx.fillStyle = accentColor;
+      ctx.fillText(labels[index], btnX + buttonSize / 2 - fontSize / 2 + 2, controlsY + buttonSize / 2 + fontSize / 2 - 4);
+    });
   }
 }

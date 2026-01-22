@@ -6,6 +6,10 @@ import AsciiText from "./plugins/asciiText.js";
 import Shape from "./plugins/shape.js";
 import Label from "./plugins/label.js";
 import MediaPlayer from "./plugins/mediaPlayer.js";
+import MediaCover from "./plugins/mediaCover.js";
+import MediaText from "./plugins/mediaText.js";
+import MediaProgress from "./plugins/mediaProgress.js";
+import MediaControls from "./plugins/mediaControls.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -44,7 +48,11 @@ const pluginMap = {
   asciiText: AsciiText,
   shape: Shape,
   label: Label,
-  mediaPlayer: MediaPlayer
+  mediaPlayer: MediaPlayer,
+  mediaCover: MediaCover,
+  mediaText: MediaText,
+  mediaProgress: MediaProgress,
+  mediaControls: MediaControls
 };
 
 const DEFAULT_CONFIGS = {
@@ -111,7 +119,9 @@ const DEFAULT_CONFIGS = {
     width: 540,
     height: 160,
     baseUrl: "http://localhost:9863/api/v1",
-    endpoint: "/state",
+    appId: "projecttimer",
+    appName: "Project Timer",
+    appVersion: "1.0.0",
     pollInterval: 3000,
     background: "rgba(0, 0, 0, 0.5)",
     color: "#ffffff",
@@ -119,6 +129,47 @@ const DEFAULT_CONFIGS = {
     fontSize: 18,
     titleSize: 22,
     coverSize: 96
+  },
+  mediaCover: {
+    type: "mediaCover",
+    x: 60,
+    y: 60,
+    width: 120,
+    height: 120,
+    baseUrl: "http://localhost:9863/api/v1",
+    appId: "projecttimer",
+    appName: "Project Timer",
+    appVersion: "1.0.0"
+  },
+  mediaText: {
+    type: "mediaText",
+    x: 200,
+    y: 60,
+    width: 320,
+    baseUrl: "http://localhost:9863/api/v1",
+    appId: "projecttimer",
+    appName: "Project Timer",
+    appVersion: "1.0.0"
+  },
+  mediaProgress: {
+    type: "mediaProgress",
+    x: 200,
+    y: 140,
+    width: 320,
+    height: 10,
+    baseUrl: "http://localhost:9863/api/v1",
+    appId: "projecttimer",
+    appName: "Project Timer",
+    appVersion: "1.0.0"
+  },
+  mediaControls: {
+    type: "mediaControls",
+    x: 200,
+    y: 160,
+    baseUrl: "http://localhost:9863/api/v1",
+    appId: "projecttimer",
+    appName: "Project Timer",
+    appVersion: "1.0.0"
   }
 };
 
@@ -208,7 +259,14 @@ function updateOverlay() {
 
 function canResize(cfg) {
   if (!cfg) return false;
-  return ["image", "calendar", "shape", "mediaPlayer"].includes(cfg.type);
+  return [
+    "image",
+    "calendar",
+    "shape",
+    "mediaPlayer",
+    "mediaCover",
+    "mediaProgress"
+  ].includes(cfg.type);
 }
 
 function getPluginBounds(cfg) {
@@ -241,6 +299,19 @@ function getPluginBounds(cfg) {
     const fontSize = cfg.fontSize || 24;
     const textLength = String(cfg.text || "Label").length;
     return { x: cfg.x ?? 0, y: (cfg.y ?? 0) - fontSize, width: textLength * (fontSize * 0.6), height: fontSize + 10 };
+  }
+
+  if (cfg.type === "mediaText") {
+    const titleSize = cfg.titleSize || 24;
+    const lineHeight = cfg.lineHeight || 26;
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 300, height: titleSize + lineHeight * 2 };
+  }
+
+  if (cfg.type === "mediaControls") {
+    const size = cfg.buttonSize || 32;
+    const gap = cfg.gap || 12;
+    const width = size * 3 + gap * 2;
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width, height: size };
   }
 
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };
