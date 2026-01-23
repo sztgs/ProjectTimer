@@ -1,0 +1,68 @@
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #0f1115;
+  color: #e2e8f0;
+  overflow: hidden;
+}
+
+.lab {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100%;
+}
+
+.panel {
+  padding: 16px;
+  background: #111827;
+  border-right: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel h1 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+textarea,
+input,
+button {
+  font-family: inherit;
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #e2e8f0;
+  padding: 6px;
+}
+
+button {
+  cursor: pointer;
+}
+
+#configOut {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  padding: 8px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  min-height: 80px;
+}
+
+.preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+
+#screen {
+  background: #000;
+  border: 1px solid #1f2937;
+}
