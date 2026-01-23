@@ -4,8 +4,10 @@ const openRuntimeButton = document.getElementById("openRuntime");
 const openEditorButton = document.getElementById("openEditor");
 const openStudioButton = document.getElementById("openStudio");
 const openAsciiLabButton = document.getElementById("openAsciiLab");
+const toggleFullscreenButton = document.getElementById("toggleFullscreen");
 const preview = document.getElementById("preview");
 const themeGrid = document.getElementById("themeGrid");
+const appRoot = document.querySelector(".app");
 
 async function loadThemes() {
   const response = await fetch("/api/themes");
@@ -84,6 +86,10 @@ openStudioButton.addEventListener("click", () => {
 
 openAsciiLabButton.addEventListener("click", () => {
   preview.src = "./ascii-animator.html";
+});
+
+toggleFullscreenButton.addEventListener("click", () => {
+  appRoot.classList.toggle("fullscreen");
 });
 
 applyThemeButton.addEventListener("click", applyTheme);

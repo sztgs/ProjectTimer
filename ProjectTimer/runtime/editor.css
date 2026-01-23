@@ -2,148 +2,178 @@
   color-scheme: dark;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
   margin: 0;
-  font-family: "Courier New", monospace;
-  background: #0a0a0a;
-  color: #d0ffd0;
+  height: 100%;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #0f1115;
+  color: #e2e8f0;
   overflow: hidden;
 }
 
-html {
-  overflow: hidden;
-}
-
-.app {
+.shell {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  height: 100vh;
+  grid-template-columns: 68px 1fr 300px;
+  grid-template-rows: 52px 1fr 170px;
+  height: 100%;
 }
 
-.sidebar {
-  background: #050505;
-  border-right: 2px solid #00aa55;
-  padding: 16px;
-  overflow-y: auto;
-}
-
-.sidebar h1 {
-  margin: 0 0 16px;
-  font-size: 20px;
-}
-
-.sidebar h2 {
-  margin: 20px 0 8px;
-  font-size: 16px;
-}
-
-.field {
+.topbar {
+  grid-column: 1 / -1;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #111827;
+  border-bottom: 1px solid #1f2937;
 }
 
-select,
-input[type="number"] {
-  min-width: 0;
+.brand {
+  font-weight: 600;
+  font-size: 14px;
 }
 
-label {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: #7cffb5;
-}
-
-input,
-select,
-textarea,
-button {
-  font-family: inherit;
-  background: #0f0f0f;
-  border: 1px solid #00aa55;
-  color: #d0ffd0;
-  padding: 8px;
-}
-
-.inline {
+.toolbar {
   display: flex;
   gap: 8px;
-  align-items: center;
 }
 
-.checkbox {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  font-size: 12px;
-  color: #7cffb5;
-}
-
-textarea {
-  resize: vertical;
-}
-
-button {
+.toolbar button,
+.viewport-actions button {
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.buttons {
+.sidebar {
+  background: #111827;
+  border-right: 1px solid #1f2937;
+  padding: 12px 8px;
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
-.plugin-list {
+.sidebar.right {
+  border-right: none;
+  border-left: 1px solid #1f2937;
+  padding: 12px;
+}
+
+.sidebar h2 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.sidebar button {
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #e2e8f0;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.viewport {
+  background: #0b0f1a;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewport-header {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  border-bottom: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#stage {
+  flex: 1;
+  border: none;
+  width: 100%;
+  background: #000;
+}
+
+.panel {
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 12px;
+}
+
+.panel h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.row input {
+  width: 100%;
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #e2e8f0;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.layers {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.plugin-list button {
-  text-align: left;
-  width: 100%;
-}
-
-.plugin-list button.active {
-  background: #003c1a;
-}
-
-.stage {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-}
-
-#screen {
-  border: 2px solid #00aa55;
-  background: #000;
-}
-
-.overlay {
-  position: absolute;
-  border: 1px dashed #00ff66;
-  pointer-events: none;
-  display: none;
-}
-
-.resize-handle {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  right: -6px;
-  bottom: -6px;
-  background: #00ff66;
-  cursor: nwse-resize;
-}
-
-.hint {
-  margin-top: 16px;
+.layers li {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 6px;
   font-size: 12px;
-  color: #7cffb5;
+}
+
+.timeline {
+  grid-column: 1 / -1;
+  background: #111827;
+  border-top: 1px solid #1f2937;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-header {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  border-bottom: 1px solid #1f2937;
+}
+
+.timeline-body {
+  flex: 1;
+  padding: 12px;
+  font-size: 12px;
+  color: #94a3b8;
 }

@@ -18,6 +18,15 @@ body {
   height: 100%;
 }
 
+.app.fullscreen .topbar,
+.app.fullscreen .theme-panel {
+  display: none;
+}
+
+.app.fullscreen .content {
+  grid-template-columns: 1fr;
+}
+
 .topbar {
   display: flex;
   align-items: center;
