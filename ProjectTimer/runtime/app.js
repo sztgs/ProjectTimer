@@ -5,6 +5,7 @@ const openEditorButton = document.getElementById("openEditor");
 const openStudioButton = document.getElementById("openStudio");
 const openAsciiLabButton = document.getElementById("openAsciiLab");
 const toggleFullscreenButton = document.getElementById("toggleFullscreen");
+const toggleUiButton = document.getElementById("toggleUi");
 const preview = document.getElementById("preview");
 const themeGrid = document.getElementById("themeGrid");
 const appRoot = document.querySelector(".app");
@@ -90,6 +91,11 @@ openAsciiLabButton.addEventListener("click", () => {
 
 toggleFullscreenButton.addEventListener("click", () => {
   appRoot.classList.toggle("fullscreen");
+});
+
+toggleUiButton.addEventListener("click", () => {
+  appRoot.classList.toggle("hide-ui");
+  toggleUiButton.textContent = appRoot.classList.contains("hide-ui") ? "❮" : "❯";
 });
 
 applyThemeButton.addEventListener("click", applyTheme);

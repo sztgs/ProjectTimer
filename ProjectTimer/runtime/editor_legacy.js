@@ -21,6 +21,9 @@ import OrbitDots from "./plugins/orbitDots.js";
 import EqualizerBars from "./plugins/equalizerBars.js";
 import BinaryClock from "./plugins/binaryClock.js";
 import SegmentClock from "./plugins/segmentClock.js";
+import RadarSweep from "./plugins/radarSweep.js";
+import MatrixRain from "./plugins/matrixRain.js";
+import GridWave from "./plugins/gridWave.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -83,7 +86,10 @@ const pluginMap = {
   orbitDots: OrbitDots,
   equalizerBars: EqualizerBars,
   binaryClock: BinaryClock,
-  segmentClock: SegmentClock
+  segmentClock: SegmentClock,
+  radarSweep: RadarSweep,
+  matrixRain: MatrixRain,
+  gridWave: GridWave
 };
 
 const DEFAULT_CONFIGS = {
@@ -335,6 +341,36 @@ const DEFAULT_CONFIGS = {
     color: "#00ff66",
     speed: 0.08,
     alpha: 1
+  },
+  radarSweep: {
+    type: "radarSweep",
+    x: 1200,
+    y: 520,
+    radius: 60,
+    color: "#00ff66",
+    speed: 0.03,
+    alpha: 0.9
+  },
+  matrixRain: {
+    type: "matrixRain",
+    x: 60,
+    y: 600,
+    width: 220,
+    height: 140,
+    fontSize: 14,
+    color: "#00ff66",
+    alpha: 0.9
+  },
+  gridWave: {
+    type: "gridWave",
+    x: 300,
+    y: 600,
+    width: 220,
+    height: 140,
+    spacing: 20,
+    amplitude: 6,
+    color: "#00ff66",
+    alpha: 0.9
   }
 };
 
@@ -537,6 +573,11 @@ function getPluginBounds(cfg) {
 
   if (cfg.type === "asciiSpinner" || cfg.type === "pulseRing" || cfg.type === "orbitDots") {
     const size = cfg.radius ? cfg.radius * 2 : (cfg.fontSize || 24);
+    return { x: (cfg.x ?? 0) - size / 2, y: (cfg.y ?? 0) - size / 2, width: size, height: size };
+  }
+
+  if (cfg.type === "radarSweep") {
+    const size = (cfg.radius || 60) * 2;
     return { x: (cfg.x ?? 0) - size / 2, y: (cfg.y ?? 0) - size / 2, width: size, height: size };
   }
 

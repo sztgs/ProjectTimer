@@ -21,6 +21,9 @@ import OrbitDots from "./plugins/orbitDots.js";
 import EqualizerBars from "./plugins/equalizerBars.js";
 import BinaryClock from "./plugins/binaryClock.js";
 import SegmentClock from "./plugins/segmentClock.js";
+import RadarSweep from "./plugins/radarSweep.js";
+import MatrixRain from "./plugins/matrixRain.js";
+import GridWave from "./plugins/gridWave.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -61,7 +64,10 @@ const pluginMap = {
   orbitDots: OrbitDots,
   equalizerBars: EqualizerBars,
   binaryClock: BinaryClock,
-  segmentClock: SegmentClock
+  segmentClock: SegmentClock,
+  radarSweep: RadarSweep,
+  matrixRain: MatrixRain,
+  gridWave: GridWave
 };
 
 // ---------- THEME CSS ----------
