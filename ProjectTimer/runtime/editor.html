@@ -2,78 +2,127 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Theme Editor Studio</title>
-  <link rel="stylesheet" href="./editor.css">
+  <title>Theme Editor</title>
+  <link rel="stylesheet" href="./editor_legacy.css">
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand">Project Timer Studio</div>
-      <nav class="toolbar">
-        <button data-action="theme">Theme Manager</button>
-        <button data-action="legacy">Legacy Editor</button>
-        <button data-action="save">Save Layout</button>
-      </nav>
-    </header>
-    <aside class="sidebar left">
-      <h2>Tools</h2>
-      <button>Move</button>
-      <button>Scale</button>
-      <button>Rotate</button>
-      <button>Shape</button>
-      <button>Text</button>
-      <button>Media</button>
-      <button>Animation</button>
-    </aside>
-    <main class="viewport">
-      <div class="viewport-header">
-        <span>Viewport</span>
-        <div class="viewport-actions">
-          <button data-action="timer">Timer</button>
-          <button data-action="editor">Editor</button>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>Theme Editor</h1>
+      <div class="field">
+        <label for="themeName">Theme name</label>
+        <input id="themeName" type="text" value="bios">
+      </div>
+      <div class="field">
+        <label for="themeDisplayName">Display name</label>
+        <input id="themeDisplayName" type="text" value="Custom Theme">
+      </div>
+      <div class="field">
+        <label for="themeWidth">Resolution (width x height)</label>
+        <div class="inline">
+          <input id="themeWidth" type="number" value="1920" min="200">
+          <input id="themeHeight" type="number" value="480" min="200">
         </div>
       </div>
-      <iframe id="stage" title="Theme editor viewport" src="./editor_legacy.html"></iframe>
-    </main>
-    <aside class="sidebar right">
-      <h2>Properties</h2>
-      <section class="panel">
-        <h3>Transform</h3>
-        <div class="row">
-          <label>X</label><input type="number" value="0">
-          <label>Y</label><input type="number" value="0">
+      <div class="field">
+        <label for="themeBackground">Background</label>
+        <input id="themeBackground" type="text" value="#000000">
+      </div>
+      <div class="buttons">
+        <button id="loadTheme">Load theme</button>
+        <button id="saveLayout">Download layout.json</button>
+        <button id="createTheme">Download theme pack</button>
+      </div>
+      <div class="field">
+        <label for="pluginType">Add plugin</label>
+        <select id="pluginType"></select>
+        <button id="addPlugin">Add</button>
+      </div>
+      <h2>Plugins</h2>
+      <ul id="pluginList" class="plugin-list"></ul>
+      <h2>Selected plugin</h2>
+      <div class="field">
+        <label for="pluginJson">Config (JSON)</label>
+        <textarea id="pluginJson" rows="12"></textarea>
+        <div class="buttons">
+          <button id="applyPlugin">Apply config</button>
+          <button id="deletePlugin">Delete plugin</button>
+          <button id="duplicatePlugin">Duplicate</button>
+          <button id="toggleVisibility">Toggle visibility</button>
         </div>
-        <div class="row">
-          <label>W</label><input type="number" value="320">
-          <label>H</label><input type="number" value="180">
+      </div>
+      <div class="field">
+        <label for="shapeType">Shape type</label>
+        <select id="shapeType">
+          <option value="rect">Rectangle</option>
+          <option value="roundedRect">Rounded rectangle</option>
+          <option value="circle">Circle</option>
+          <option value="triangle">Triangle</option>
+          <option value="polygon">Polygon</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="shapeSides">Polygon sides</label>
+        <input id="shapeSides" type="number" value="6" min="3" max="12">
+      </div>
+      <div class="field">
+        <label for="rotation">Rotation (degrees)</label>
+        <input id="rotation" type="number" value="0" step="5">
+      </div>
+      <div class="field">
+        <label for="colorPicker">Primary color</label>
+        <input id="colorPicker" type="color" value="#00ff66">
+      </div>
+      <div class="field">
+        <label for="alphaRange">Opacity</label>
+        <input id="alphaRange" type="range" min="0" max="1" step="0.05" value="1">
+      </div>
+      <div class="field">
+        <label for="textEditor">ASCII/Text content</label>
+        <textarea id="textEditor" rows="6" placeholder="Select a text plugin to edit"></textarea>
+      </div>
+      <div class="buttons">
+        <button id="layerUp">Move layer up</button>
+        <button id="layerDown">Move layer down</button>
+      </div>
+      <div class="field">
+        <label>Canvas helpers</label>
+        <div class="inline">
+          <label class="checkbox">
+            <input id="showGrid" type="checkbox" checked>
+            Show grid
+          </label>
+          <label class="checkbox">
+            <input id="snapGrid" type="checkbox" checked>
+            Snap to grid
+          </label>
         </div>
-        <div class="row">
-          <label>Rot</label><input type="number" value="0">
-        </div>
-      </section>
-      <section class="panel">
-        <h3>Appearance</h3>
-        <div class="row">
-          <label>Color</label><input type="color" value="#00ff66">
-        </div>
-        <div class="row">
-          <label>Opacity</label><input type="range" min="0" max="1" step="0.05" value="1">
-        </div>
-      </section>
-      <section class="panel">
-        <h3>Layers</h3>
-        <ul class="layers" id="layers">
-          <li>Background</li>
-          <li>Clock</li>
-          <li>Media</li>
-        </ul>
-      </section>
+        <input id="gridSize" type="number" value="20" min="4" step="2">
+      </div>
+      <div class="field">
+        <label for="styleEditor">Theme style.css</label>
+        <textarea id="styleEditor" rows="8" placeholder="Load a theme to edit CSS animations"></textarea>
+        <button id="downloadStyle">Download style.css</button>
+      </div>
+      <div class="field">
+        <label for="stylePreset">Style preset</label>
+        <select id="stylePreset"></select>
+        <button id="applyStylePreset">Apply preset</button>
+      </div>
+      <div class="field">
+        <label for="animationPreset">Animation preset</label>
+        <select id="animationPreset"></select>
+        <button id="addAnimationPreset">Add animation</button>
+      </div>
+      <p class="hint">Tip: drag items to reposition and drag the corner handle to resize.</p>
     </aside>
-    <section class="timeline">
-      <div class="timeline-header">Timeline</div>
-      <div class="timeline-body">Animation tracks and keyframes will appear here.</div>
-    </section>
+    <main class="stage">
+      <canvas id="screen"></canvas>
+      <div class="overlay" id="overlay">
+        <div class="resize-handle"></div>
+      </div>
+    </main>
   </div>
-  <script type="module" src="./editor.js"></script>
+  <script type="module" src="./editor_legacy.js"></script>
 </body>
 </html>
