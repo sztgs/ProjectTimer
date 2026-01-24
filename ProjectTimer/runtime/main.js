@@ -25,6 +25,7 @@ import RadarSweep from "./plugins/radarSweep.js";
 import MatrixRain from "./plugins/matrixRain.js";
 import GridWave from "./plugins/gridWave.js";
 import GifPlayer from "./plugins/gif.js";
+import PixelArt from "./plugins/pixelArt.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -70,7 +71,8 @@ const pluginMap = {
   radarSweep: RadarSweep,
   matrixRain: MatrixRain,
   gridWave: GridWave,
-  gif: GifPlayer
+  gif: GifPlayer,
+  pixelArt: PixelArt
 };
 
 // ---------- THEME CSS ----------

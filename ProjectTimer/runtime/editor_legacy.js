@@ -25,9 +25,12 @@ import RadarSweep from "./plugins/radarSweep.js";
 import MatrixRain from "./plugins/matrixRain.js";
 import GridWave from "./plugins/gridWave.js";
 import GifPlayer from "./plugins/gif.js";
+import PixelArt from "./plugins/pixelArt.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
+const stage = document.querySelector(".stage");
+const viewBox = document.getElementById("viewBox");
 const themeNameInput = document.getElementById("themeName");
 const themeDisplayNameInput = document.getElementById("themeDisplayName");
 const themeWidthInput = document.getElementById("themeWidth");
@@ -50,6 +53,14 @@ const rotationInput = document.getElementById("rotation");
 const colorPickerInput = document.getElementById("colorPicker");
 const alphaRangeInput = document.getElementById("alphaRange");
 const textEditor = document.getElementById("textEditor");
+const pixelEditor = document.getElementById("pixelEditor");
+const pixelGridWidthInput = document.getElementById("pixelGridWidth");
+const pixelGridHeightInput = document.getElementById("pixelGridHeight");
+const pixelSizeInput = document.getElementById("pixelSize");
+const pixelColorInput = document.getElementById("pixelColor");
+const pixelClearButton = document.getElementById("pixelClear");
+const pixelCanvas = document.getElementById("pixelCanvas");
+const pixelCtx = pixelCanvas.getContext("2d");
 const layerUpButton = document.getElementById("layerUp");
 const layerDownButton = document.getElementById("layerDown");
 const showGridCheckbox = document.getElementById("showGrid");
@@ -91,7 +102,8 @@ const pluginMap = {
   radarSweep: RadarSweep,
   matrixRain: MatrixRain,
   gridWave: GridWave,
-  gif: GifPlayer
+  gif: GifPlayer,
+  pixelArt: PixelArt
 };
 
 const DEFAULT_CONFIGS = {
@@ -383,6 +395,16 @@ const DEFAULT_CONFIGS = {
     src: "assets/sample.gif",
     rotation: 0,
     alpha: 1
+  },
+  pixelArt: {
+    type: "pixelArt",
+    x: 120,
+    y: 120,
+    gridWidth: 16,
+    gridHeight: 8,
+    pixelSize: 16,
+    pixels: new Array(16 * 8).fill(null),
+    background: "transparent"
   }
 };
 
@@ -394,6 +416,10 @@ let themeCss = "";
 let showGrid = true;
 let snapToGrid = true;
 let gridSize = 20;
+let isPaintingPixels = false;
+let themeResolution = { width: 1920, height: 480 };
+let viewOffset = { x: 0, y: 0 };
+let pixelEditorState = { gridWidth: null, gridHeight: null };
 const styleTag = document.createElement("style");
 document.head.appendChild(styleTag);
 const STYLE_PRESETS = {
@@ -419,8 +445,24 @@ function updateThemePath() {
 }
 
 function setCanvasSize(width, height) {
-  canvas.width = width;
-  canvas.height = height;
+  themeResolution = { width, height };
+  resizeStageCanvas();
+}
+
+function resizeStageCanvas() {
+  const rect = stage.getBoundingClientRect();
+  canvas.width = Math.max(1, Math.round(rect.width));
+  canvas.height = Math.max(1, Math.round(rect.height));
+  viewOffset = {
+    x: Math.round((canvas.width - themeResolution.width) / 2),
+    y: Math.round((canvas.height - themeResolution.height) / 2)
+  };
+  viewBox.style.width = `${themeResolution.width}px`;
+  viewBox.style.height = `${themeResolution.height}px`;
+  viewBox.style.left = `${viewOffset.x}px`;
+  viewBox.style.top = `${viewOffset.y}px`;
+  updateOverlay();
+  drawPixelEditor();
 }
 
 function rebuildPluginList() {
@@ -450,6 +492,7 @@ function updatePluginJson() {
     colorPickerInput.disabled = true;
     alphaRangeInput.disabled = true;
     overlay.style.display = "none";
+    pixelEditor.style.display = "none";
     return;
   }
 
@@ -479,6 +522,98 @@ function updatePluginJson() {
   colorPickerInput.value = cfg.color || "#00ff66";
   alphaRangeInput.disabled = false;
   alphaRangeInput.value = cfg.alpha ?? 1;
+  updatePixelEditor(cfg);
+}
+
+function normalizePixelConfig(cfg) {
+  const gridWidth = Math.max(1, Number(cfg.gridWidth) || 8);
+  const gridHeight = Math.max(1, Number(cfg.gridHeight) || 8);
+  const pixelSize = Math.max(2, Number(cfg.pixelSize) || 12);
+  cfg.gridWidth = gridWidth;
+  cfg.gridHeight = gridHeight;
+  cfg.pixelSize = pixelSize;
+  if (!Array.isArray(cfg.pixels)) {
+    cfg.pixels = new Array(gridWidth * gridHeight).fill(null);
+  }
+  if (cfg.pixels.length !== gridWidth * gridHeight) {
+    const next = new Array(gridWidth * gridHeight).fill(null);
+    const prev = cfg.pixels;
+    const copyWidth = Math.min(gridWidth, pixelEditorState.gridWidth || gridWidth);
+    const copyHeight = Math.min(gridHeight, pixelEditorState.gridHeight || gridHeight);
+    for (let y = 0; y < copyHeight; y += 1) {
+      for (let x = 0; x < copyWidth; x += 1) {
+        const prevIndex = y * (pixelEditorState.gridWidth || gridWidth) + x;
+        const nextIndex = y * gridWidth + x;
+        next[nextIndex] = prev[prevIndex] ?? null;
+      }
+    }
+    cfg.pixels = next;
+  }
+  pixelEditorState.gridWidth = gridWidth;
+  pixelEditorState.gridHeight = gridHeight;
+  return cfg;
+}
+
+function updatePixelEditor(cfg) {
+  if (!cfg || cfg.type !== "pixelArt") {
+    pixelEditor.style.display = "none";
+    return;
+  }
+  pixelEditor.style.display = "block";
+  normalizePixelConfig(cfg);
+  pixelGridWidthInput.value = cfg.gridWidth;
+  pixelGridHeightInput.value = cfg.gridHeight;
+  pixelSizeInput.value = cfg.pixelSize;
+  pixelColorInput.value = cfg.paintColor || "#00ff66";
+  drawPixelEditor();
+}
+
+function drawPixelEditor() {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (!cfg || cfg.type !== "pixelArt") return;
+  normalizePixelConfig(cfg);
+  const width = cfg.gridWidth * cfg.pixelSize;
+  const height = cfg.gridHeight * cfg.pixelSize;
+  pixelCanvas.width = width;
+  pixelCanvas.height = height;
+  pixelCtx.clearRect(0, 0, width, height);
+  if (cfg.background && cfg.background !== "transparent") {
+    pixelCtx.fillStyle = cfg.background;
+    pixelCtx.fillRect(0, 0, width, height);
+  }
+  cfg.pixels.forEach((color, index) => {
+    if (!color) return;
+    const x = (index % cfg.gridWidth) * cfg.pixelSize;
+    const y = Math.floor(index / cfg.gridWidth) * cfg.pixelSize;
+    pixelCtx.fillStyle = color;
+    pixelCtx.fillRect(x, y, cfg.pixelSize, cfg.pixelSize);
+  });
+  pixelCtx.strokeStyle = "rgba(0, 255, 102, 0.2)";
+  for (let x = 0; x <= width; x += cfg.pixelSize) {
+    pixelCtx.beginPath();
+    pixelCtx.moveTo(x, 0);
+    pixelCtx.lineTo(x, height);
+    pixelCtx.stroke();
+  }
+  for (let y = 0; y <= height; y += cfg.pixelSize) {
+    pixelCtx.beginPath();
+    pixelCtx.moveTo(0, y);
+    pixelCtx.lineTo(width, y);
+    pixelCtx.stroke();
+  }
+}
+
+function paintPixel(event, cfg) {
+  const rect = pixelCanvas.getBoundingClientRect();
+  const x = Math.floor((event.clientX - rect.left) / cfg.pixelSize);
+  const y = Math.floor((event.clientY - rect.top) / cfg.pixelSize);
+  if (x < 0 || y < 0 || x >= cfg.gridWidth || y >= cfg.gridHeight) return;
+  const index = y * cfg.gridWidth + x;
+  const paint = cfg.paintColor || pixelColorInput.value || "#00ff66";
+  cfg.pixels[index] = paint;
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
 }
 
 function selectPlugin(index) {
@@ -501,8 +636,8 @@ function updateOverlay() {
   }
 
   overlay.style.display = "block";
-  overlay.style.left = `${bounds.x + canvas.offsetLeft}px`;
-  overlay.style.top = `${bounds.y + canvas.offsetTop}px`;
+  overlay.style.left = `${bounds.x + viewOffset.x}px`;
+  overlay.style.top = `${bounds.y + viewOffset.y}px`;
   overlay.style.width = `${bounds.width}px`;
   overlay.style.height = `${bounds.height}px`;
   resizeHandle.style.display = canResize(plugins[selectedIndex]) ? "block" : "none";
@@ -583,6 +718,13 @@ function getPluginBounds(cfg) {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 400, height: cfg.height ?? 120 };
   }
 
+  if (cfg.type === "pixelArt") {
+    const gridWidth = cfg.gridWidth || 8;
+    const gridHeight = cfg.gridHeight || 8;
+    const pixelSize = cfg.pixelSize || 12;
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: gridWidth * pixelSize, height: gridHeight * pixelSize };
+  }
+
   if (cfg.type === "starfield" || cfg.type === "particleField" || cfg.type === "gradientShift" || cfg.type === "equalizerBars") {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 220, height: cfg.height ?? 120 };
   }
@@ -598,13 +740,6 @@ function getPluginBounds(cfg) {
   }
 
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };
-}
-
-function clampPosition(cfg, bounds) {
-  const safeX = Math.min(Math.max(bounds.x, -bounds.width / 2), canvas.width - bounds.width / 2);
-  const safeY = Math.min(Math.max(bounds.y, -bounds.height / 2), canvas.height - bounds.height / 2);
-  cfg.x = Math.round(safeX);
-  cfg.y = Math.round(safeY);
 }
 
 function instantiatePlugins() {
@@ -625,13 +760,15 @@ function render() {
     ctx.save();
     ctx.strokeStyle = "rgba(0, 255, 102, 0.12)";
     ctx.lineWidth = 1;
-    for (let x = 0; x <= canvas.width; x += gridSize) {
+    const startX = ((viewOffset.x % gridSize) + gridSize) % gridSize;
+    const startY = ((viewOffset.y % gridSize) + gridSize) % gridSize;
+    for (let x = startX; x <= canvas.width; x += gridSize) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
-    for (let y = 0; y <= canvas.height; y += gridSize) {
+    for (let y = startY; y <= canvas.height; y += gridSize) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
@@ -640,10 +777,13 @@ function render() {
     ctx.restore();
   }
 
+  ctx.save();
+  ctx.translate(viewOffset.x, viewOffset.y);
   pluginInstances.forEach(instance => {
     instance.update?.();
     instance.draw(ctx);
   });
+  ctx.restore();
 
   updateOverlay();
   requestAnimationFrame(render);
@@ -801,8 +941,16 @@ function getMousePosition(event) {
   };
 }
 
-canvas.addEventListener("mousedown", event => {
+function getThemePosition(event) {
   const pos = getMousePosition(event);
+  return {
+    x: pos.x - viewOffset.x,
+    y: pos.y - viewOffset.y
+  };
+}
+
+canvas.addEventListener("mousedown", event => {
+  const pos = getThemePosition(event);
   for (let i = plugins.length - 1; i >= 0; i -= 1) {
     const bounds = getPluginBounds(plugins[i]);
     if (!bounds) continue;
@@ -819,7 +967,6 @@ canvas.addEventListener("mousedown", event => {
       pos.y <= bounds.y + bounds.height
     ) {
       selectPlugin(i);
-      clampPosition(plugins[i], bounds);
       dragging = {
         index: i,
         offsetX: pos.x - bounds.x,
@@ -837,7 +984,7 @@ canvas.addEventListener("mousedown", event => {
 
 window.addEventListener("mousemove", event => {
   if (!dragging) return;
-  const pos = getMousePosition(event);
+  const pos = getThemePosition(event);
   const cfg = plugins[dragging.index];
   if (dragging.mode === "resize" && canResize(cfg)) {
     const rawWidth = Math.max(20, pos.x - (cfg.x ?? 0));
@@ -851,10 +998,6 @@ window.addEventListener("mousemove", event => {
     const newY = pos.y - dragging.offsetY;
     cfg.x = Math.round(snapToGrid ? Math.round(newX / gridSize) * gridSize : newX);
     cfg.y = Math.round(snapToGrid ? Math.round(newY / gridSize) * gridSize : newY);
-  }
-  const bounds = getPluginBounds(cfg);
-  if (bounds) {
-    clampPosition(cfg, bounds);
   }
   pluginInstances = instantiatePlugins();
   updatePluginJson();
@@ -920,6 +1063,7 @@ snapGridCheckbox.addEventListener("change", () => {
 gridSizeInput.addEventListener("change", () => {
   gridSize = Math.max(4, Number(gridSizeInput.value) || 20);
 });
+window.addEventListener("resize", resizeStageCanvas);
 themeBackgroundInput.addEventListener("input", () => {
   updateCanvasBackground();
 });
@@ -940,6 +1084,64 @@ textEditor.addEventListener("input", () => {
   const cfg = plugins[selectedIndex];
   if (cfg.type !== "asciiText") return;
   cfg.text = textEditor.value.split("\n");
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+pixelCanvas.addEventListener("mousedown", event => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  isPaintingPixels = true;
+  paintPixel(event, cfg);
+});
+pixelCanvas.addEventListener("mousemove", event => {
+  if (!isPaintingPixels) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  paintPixel(event, cfg);
+});
+window.addEventListener("mouseup", () => {
+  isPaintingPixels = false;
+});
+pixelGridWidthInput.addEventListener("change", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  cfg.gridWidth = Math.max(1, Number(pixelGridWidthInput.value) || 8);
+  normalizePixelConfig(cfg);
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+pixelGridHeightInput.addEventListener("change", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  cfg.gridHeight = Math.max(1, Number(pixelGridHeightInput.value) || 8);
+  normalizePixelConfig(cfg);
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+pixelSizeInput.addEventListener("change", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  cfg.pixelSize = Math.max(2, Number(pixelSizeInput.value) || 12);
+  normalizePixelConfig(cfg);
+  pluginInstances = instantiatePlugins();
+  updatePluginJson();
+});
+pixelColorInput.addEventListener("input", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  cfg.paintColor = pixelColorInput.value;
+});
+pixelClearButton.addEventListener("click", () => {
+  if (selectedIndex < 0) return;
+  const cfg = plugins[selectedIndex];
+  if (cfg.type !== "pixelArt") return;
+  normalizePixelConfig(cfg);
+  cfg.pixels = new Array(cfg.gridWidth * cfg.gridHeight).fill(null);
   pluginInstances = instantiatePlugins();
   updatePluginJson();
 });
@@ -987,5 +1189,6 @@ alphaRangeInput.addEventListener("input", () => {
 setCanvasSize(1920, 480);
 pluginInstances = instantiatePlugins();
 textEditor.disabled = true;
+pixelEditor.style.display = "none";
 updateThemePath();
 render();

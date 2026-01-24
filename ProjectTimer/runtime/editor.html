@@ -81,6 +81,24 @@
         <label for="textEditor">ASCII/Text content</label>
         <textarea id="textEditor" rows="6" placeholder="Select a text plugin to edit"></textarea>
       </div>
+      <div class="field pixel-editor" id="pixelEditor">
+        <label>Pixel art editor</label>
+        <div class="inline">
+          <input id="pixelGridWidth" type="number" value="16" min="1">
+          <input id="pixelGridHeight" type="number" value="8" min="1">
+        </div>
+        <div class="inline">
+          <label for="pixelSize">Pixel size</label>
+          <input id="pixelSize" type="number" value="16" min="2">
+        </div>
+        <div class="inline">
+          <label for="pixelColor">Paint</label>
+          <input id="pixelColor" type="color" value="#00ff66">
+          <button id="pixelClear" type="button">Clear</button>
+        </div>
+        <canvas id="pixelCanvas" width="256" height="128"></canvas>
+        <p class="hint">Select a pixelArt plugin to edit.</p>
+      </div>
       <div class="buttons">
         <button id="layerUp">Move layer up</button>
         <button id="layerDown">Move layer down</button>
@@ -118,6 +136,7 @@
     </aside>
     <main class="stage">
       <canvas id="screen"></canvas>
+      <div class="view-box" id="viewBox"></div>
       <div class="overlay" id="overlay">
         <div class="resize-handle"></div>
       </div>
