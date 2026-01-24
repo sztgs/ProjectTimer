@@ -3,7 +3,6 @@ const applyThemeButton = document.getElementById("applyTheme");
 const openRuntimeButton = document.getElementById("openRuntime");
 const openEditorButton = document.getElementById("openEditor");
 const openStudioButton = document.getElementById("openStudio");
-const openAsciiLabButton = document.getElementById("openAsciiLab");
 const toggleFullscreenButton = document.getElementById("toggleFullscreen");
 const toggleUiButton = document.getElementById("toggleUi");
 const preview = document.getElementById("preview");
@@ -83,10 +82,6 @@ openEditorButton.addEventListener("click", () => {
 
 openStudioButton.addEventListener("click", () => {
   preview.src = "./editor-experimental.html";
-});
-
-openAsciiLabButton.addEventListener("click", () => {
-  preview.src = "./ascii-animator.html";
 });
 
 toggleFullscreenButton.addEventListener("click", () => {

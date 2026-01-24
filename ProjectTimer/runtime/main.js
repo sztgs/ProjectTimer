@@ -24,6 +24,7 @@ import SegmentClock from "./plugins/segmentClock.js";
 import RadarSweep from "./plugins/radarSweep.js";
 import MatrixRain from "./plugins/matrixRain.js";
 import GridWave from "./plugins/gridWave.js";
+import GifPlayer from "./plugins/gif.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -40,6 +41,7 @@ let lastFrameTime = 0;
 let fps = 0;
 let frames = 0;
 let lastFpsUpdate = performance.now();
+let lowFpsStart = null;
 
 const pluginMap = {
   clock: Clock,
@@ -67,7 +69,8 @@ const pluginMap = {
   segmentClock: SegmentClock,
   radarSweep: RadarSweep,
   matrixRain: MatrixRain,
-  gridWave: GridWave
+  gridWave: GridWave,
+  gif: GifPlayer
 };
 
 // ---------- THEME CSS ----------
@@ -142,6 +145,17 @@ function loop(timestamp) {
       lastFpsUpdate = now;
     }
     debug.textContent = `Plugins: ${plugins.length}\nRes: ${canvas.width}x${canvas.height}\nFPS: ${fps}\nMax FPS: ${maxFps}`;
+  }
+
+  if (fps <= 5) {
+    if (!lowFpsStart) {
+      lowFpsStart = performance.now();
+    } else if (performance.now() - lowFpsStart > 3000) {
+      ctx.canvas.width = ctx.canvas.width;
+      lowFpsStart = null;
+    }
+  } else {
+    lowFpsStart = null;
   }
 
   requestAnimationFrame(loop);

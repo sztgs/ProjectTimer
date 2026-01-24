@@ -24,6 +24,7 @@ import SegmentClock from "./plugins/segmentClock.js";
 import RadarSweep from "./plugins/radarSweep.js";
 import MatrixRain from "./plugins/matrixRain.js";
 import GridWave from "./plugins/gridWave.js";
+import GifPlayer from "./plugins/gif.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -89,7 +90,8 @@ const pluginMap = {
   segmentClock: SegmentClock,
   radarSweep: RadarSweep,
   matrixRain: MatrixRain,
-  gridWave: GridWave
+  gridWave: GridWave,
+  gif: GifPlayer
 };
 
 const DEFAULT_CONFIGS = {
@@ -371,6 +373,16 @@ const DEFAULT_CONFIGS = {
     amplitude: 6,
     color: "#00ff66",
     alpha: 0.9
+  },
+  gif: {
+    type: "gif",
+    x: 540,
+    y: 600,
+    width: 220,
+    height: 140,
+    src: "assets/sample.gif",
+    rotation: 0,
+    alpha: 1
   }
 };
 
@@ -563,6 +575,10 @@ function getPluginBounds(cfg) {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 320, height: cfg.height ?? 180 };
   }
 
+  if (cfg.type === "gif") {
+    return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 220, height: cfg.height ?? 140 };
+  }
+
   if (cfg.type === "asciiWave") {
     return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: cfg.width ?? 400, height: cfg.height ?? 120 };
   }
@@ -582,6 +598,13 @@ function getPluginBounds(cfg) {
   }
 
   return { x: cfg.x ?? 0, y: cfg.y ?? 0, width: 200, height: 120 };
+}
+
+function clampPosition(cfg, bounds) {
+  const safeX = Math.min(Math.max(bounds.x, -bounds.width / 2), canvas.width - bounds.width / 2);
+  const safeY = Math.min(Math.max(bounds.y, -bounds.height / 2), canvas.height - bounds.height / 2);
+  cfg.x = Math.round(safeX);
+  cfg.y = Math.round(safeY);
 }
 
 function instantiatePlugins() {
@@ -796,6 +819,7 @@ canvas.addEventListener("mousedown", event => {
       pos.y <= bounds.y + bounds.height
     ) {
       selectPlugin(i);
+      clampPosition(plugins[i], bounds);
       dragging = {
         index: i,
         offsetX: pos.x - bounds.x,
@@ -827,6 +851,10 @@ window.addEventListener("mousemove", event => {
     const newY = pos.y - dragging.offsetY;
     cfg.x = Math.round(snapToGrid ? Math.round(newX / gridSize) * gridSize : newX);
     cfg.y = Math.round(snapToGrid ? Math.round(newY / gridSize) * gridSize : newY);
+  }
+  const bounds = getPluginBounds(cfg);
+  if (bounds) {
+    clampPosition(cfg, bounds);
   }
   pluginInstances = instantiatePlugins();
   updatePluginJson();
