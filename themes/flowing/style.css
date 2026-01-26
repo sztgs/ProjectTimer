@@ -1,0 +1,30 @@
+body {
+  margin: 0;
+  background: #0b0f1a;
+  color: #e5e7eb;
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+#screen {
+  border-radius: 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+#screen {
+  animation: floaty 6s ease-in-out infinite;
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+#screen {
+  animation: floaty 6s ease-in-out infinite;
+}

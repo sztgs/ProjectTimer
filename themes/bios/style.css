@@ -3,11 +3,6 @@ body {
   background: #000000;
   color: #00ff66;
   font-family: "Courier New", monospace;
-  overflow: hidden;
-}
-
-html {
-  overflow: hidden;
 }
 
 #screen {
