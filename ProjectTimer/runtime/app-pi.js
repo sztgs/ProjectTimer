@@ -35,7 +35,7 @@ async function applyTheme() {
     body: JSON.stringify({ theme })
   });
   if (response.ok) {
-    preview.src = "./index.html";
+    // Theme change handled by the runtime without forcing a refresh.
   }
 }
 
