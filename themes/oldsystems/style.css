@@ -1,0 +1,8 @@
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0, 255, 102, 0.35); }
+  50% { box-shadow: 0 0 24px rgba(0, 255, 102, 0.7); }
+}
+
+#screen {
+  animation: glowPulse 4s ease-in-out infinite;
+}
