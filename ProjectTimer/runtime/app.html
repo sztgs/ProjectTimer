@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Project Timer</title>
+  <link rel="stylesheet" href="./app.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Project Timer</h1>
+      <div class="controls">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect"></select>
+        <button id="applyTheme">Apply</button>
+        <button id="openRuntime">Open Timer</button>
+        <button id="openEditor">Open Editor</button>
+        <button id="openStudio">Studio</button>
+        <button id="toggleFullscreen">Fullscreen</button>
+      </div>
+    </header>
+    <main class="content">
+      <section class="theme-panel">
+        <h2>Theme Library</h2>
+        <div id="themeGrid" class="theme-grid"></div>
+      </section>
+      <iframe id="preview" title="Timer preview"></iframe>
+    </main>
+  </div>
+  <button id="toggleUi" class="ui-toggle" aria-label="Toggle UI">❯</button>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

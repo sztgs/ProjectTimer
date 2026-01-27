@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Project Timer (Pi)</title>
+  <link rel="stylesheet" href="./app-pi.css">
+</head>
+<body>
+  <div class="pi-shell">
+    <header class="pi-topbar">
+      <h1>Project Timer</h1>
+      <div class="pi-hint">Arrows: select • Enter: apply • E: editor • T: timer • H: hide UI</div>
+      <div id="updateNotice" class="update-notice" hidden>Update available</div>
+    </header>
+    <main class="pi-content">
+      <section class="pi-themes">
+        <h2>Themes</h2>
+        <ul id="themeList" class="theme-list"></ul>
+      </section>
+      <section class="pi-preview">
+        <iframe id="preview" title="Timer preview" src="./index.html"></iframe>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./app-pi.js"></script>
+</body>
+</html>

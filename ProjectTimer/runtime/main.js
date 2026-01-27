@@ -19,6 +19,13 @@ import ParticleField from "./plugins/particleField.js";
 import GradientShift from "./plugins/gradientShift.js";
 import OrbitDots from "./plugins/orbitDots.js";
 import EqualizerBars from "./plugins/equalizerBars.js";
+import BinaryClock from "./plugins/binaryClock.js";
+import SegmentClock from "./plugins/segmentClock.js";
+import RadarSweep from "./plugins/radarSweep.js";
+import MatrixRain from "./plugins/matrixRain.js";
+import GridWave from "./plugins/gridWave.js";
+import GifPlayer from "./plugins/gif.js";
+import PixelArt from "./plugins/pixelArt.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -35,6 +42,7 @@ let lastFrameTime = 0;
 let fps = 0;
 let frames = 0;
 let lastFpsUpdate = performance.now();
+let lowFpsStart = null;
 
 const pluginMap = {
   clock: Clock,
@@ -57,7 +65,14 @@ const pluginMap = {
   particleField: ParticleField,
   gradientShift: GradientShift,
   orbitDots: OrbitDots,
-  equalizerBars: EqualizerBars
+  equalizerBars: EqualizerBars,
+  binaryClock: BinaryClock,
+  segmentClock: SegmentClock,
+  radarSweep: RadarSweep,
+  matrixRain: MatrixRain,
+  gridWave: GridWave,
+  gif: GifPlayer,
+  pixelArt: PixelArt
 };
 
 // ---------- THEME CSS ----------
@@ -133,9 +148,10 @@ function loop(timestamp) {
     }
     debug.textContent = `Plugins: ${plugins.length}\nRes: ${canvas.width}x${canvas.height}\nFPS: ${fps}\nMax FPS: ${maxFps}`;
   }
-
+  
   requestAnimationFrame(loop);
 }
+
 
 // ---------- INPUT ----------
 window.addEventListener("keydown", e => {
