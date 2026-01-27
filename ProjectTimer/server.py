@@ -11,6 +11,7 @@ RUNTIME_PATH = os.path.join(REPO_PATH, "runtime")
 CONFIG_PATH = os.path.join(RUNTIME_PATH, "config.json")
 REMOTE_URL = "https://github.com/sztgs/ProjectTimer.git"
 REMOTE_BRANCH = "codex/create-kalendar-tracking-plugin"
+REMOTE_DEFAULT_BRANCH = "main"
 
 class Handler(SimpleHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -24,6 +25,9 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if parsed.path == "/api/theme":
             self._send_json(read_config())
+            return
+        if parsed.path == "/api/update-check":
+            self._send_json(check_for_updates())
             return
         super().do_GET()
 
@@ -102,6 +106,37 @@ def list_themes():
     if not os.path.isdir(themes_path):
         return []
     return [d for d in os.listdir(themes_path) if os.path.isdir(os.path.join(themes_path, d))]
+
+def get_local_commit():
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_PATH,
+            text=True
+        ).strip()
+    except subprocess.CalledProcessError:
+        return None
+
+def get_remote_commit():
+    try:
+        output = subprocess.check_output(
+            ["git", "ls-remote", REMOTE_URL, f"refs/heads/{REMOTE_DEFAULT_BRANCH}"],
+            cwd=REPO_PATH,
+            text=True
+        ).strip()
+        return output.split()[0] if output else None
+    except subprocess.CalledProcessError:
+        return None
+
+def check_for_updates():
+    local_commit = get_local_commit()
+    remote_commit = get_remote_commit()
+    update_available = bool(local_commit and remote_commit and local_commit != remote_commit)
+    return {
+        "updateAvailable": update_available,
+        "local": local_commit,
+        "remote": remote_commit
+    }
 
 def console_loop():
     while True:
