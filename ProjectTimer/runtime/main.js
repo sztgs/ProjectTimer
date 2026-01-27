@@ -148,20 +148,10 @@ function loop(timestamp) {
     }
     debug.textContent = `Plugins: ${plugins.length}\nRes: ${canvas.width}x${canvas.height}\nFPS: ${fps}\nMax FPS: ${maxFps}`;
   }
-
-  if (fps <= 5) {
-    if (!lowFpsStart) {
-      lowFpsStart = performance.now();
-    } else if (performance.now() - lowFpsStart > 3000) {
-      ctx.canvas.width = ctx.canvas.width;
-      lowFpsStart = null;
-    }
-  } else {
-    lowFpsStart = null;
-  }
-
+  
   requestAnimationFrame(loop);
 }
+
 
 // ---------- INPUT ----------
 window.addEventListener("keydown", e => {
